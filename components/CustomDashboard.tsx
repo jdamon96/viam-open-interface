@@ -23,7 +23,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   DropdownMenu,
@@ -46,6 +45,9 @@ import ClientStatusIndicator from "./ClientStatusIndicator";
 import useAppStore from "@/store/zustand";
 import LocationSwitcher from "./LocationSwitcher";
 import useListViamRobots, { Robot } from "@/hooks/useListViamRobots";
+import useGetViamRobotParts from "@/hooks/useGetViamRobotParts";
+import { parseComponentsWithDataManager } from "@/lib/utils";
+import useViamGetTabularDataByMQL from "@/hooks/useViamGetTabularDataByMQL";
 
 // Mock data for visualization types
 const visualizationTypes = [
@@ -62,7 +64,9 @@ const dataSources = ["Sales Data", "User Analytics", "Inventory", "Finance"];
 interface DataCard {
   id: string;
   title: string;
+  robotId: string;
   dataSource: string;
+  storageKey: string; // has form  "DASHBOARD_CARDS_{ORG_ID}_{LOC_ID}", e.g. "DASHBOARD_CARDS_85a3a4fc-f195-4d88-9ccd-26dc10f7755b_yiuf04fb9s"
   visualizationType: string;
 }
 
@@ -72,6 +76,7 @@ interface ViamConfig {
 }
 
 export const LOCALSTORAGE_API_KEY = "API_KEY";
+const LOCALSTORAGE_CARDS_PREFIX = "DASHBOARD_CARDS_";
 
 export default function CustomDashboard() {
   const viamClientContext = useContext(ViamClientContext);
@@ -84,21 +89,59 @@ export default function CustomDashboard() {
     setApiKeyId,
     locationMachines,
     currentlySelectedLocation,
+    currentlySelectedOrganization,
   } = useAppStore();
   const [cards, setCards] = useState<DataCard[]>([]);
   const [editingCard, setEditingCard] = useState<DataCard | null>(null);
   const { fetchRobotsAndSetInAppStore } = useListViamRobots();
 
+  // Function to generate localStorage key for cards based on org and location
+  const getCardsStorageKey = (orgId: string, locationId: string) =>
+    `${LOCALSTORAGE_CARDS_PREFIX}${orgId}_${locationId}`;
+
   useEffect(() => {
-    fetchRobotsAndSetInAppStore(currentlySelectedLocation?.id!);
-  }, [currentlySelectedLocation?.id!]);
+    if (currentlySelectedLocation?.id && config?.id) {
+      fetchRobotsAndSetInAppStore(currentlySelectedLocation.id);
+    }
+  }, [currentlySelectedLocation?.id, config?.id, fetchRobotsAndSetInAppStore]);
 
   useEffect(() => {
     const storedConfig = localStorage.getItem(LOCALSTORAGE_API_KEY);
     if (storedConfig) {
       setConfig(JSON.parse(storedConfig));
     }
-  }, []);
+  }, [setConfig]);
+
+  // Load cards from localStorage when config or location changes
+  useEffect(() => {
+    if (config?.id && currentlySelectedLocation?.id) {
+      const storageKey = getCardsStorageKey(
+        config.id,
+        currentlySelectedLocation.id
+      );
+      const storedCards = localStorage.getItem(storageKey);
+      if (storedCards) {
+        setCards(JSON.parse(storedCards));
+      } else {
+        setCards([]);
+      }
+    }
+  }, [config?.id, currentlySelectedLocation?.id]);
+
+  // Save cards to localStorage when cards, config, or location changes
+  useEffect(() => {
+    if (currentlySelectedOrganization?.id && currentlySelectedLocation?.id) {
+      const storageKey = getCardsStorageKey(
+        currentlySelectedOrganization.id,
+        currentlySelectedLocation.id
+      );
+      const cardsWithStorageKey = cards.map((card) => ({
+        ...card,
+        storageKey,
+      }));
+      localStorage.setItem(storageKey, JSON.stringify(cardsWithStorageKey));
+    }
+  }, [cards, config?.id, currentlySelectedLocation?.id]);
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
@@ -112,10 +155,12 @@ export default function CustomDashboard() {
 
   const handleAddCard = () => {
     const newCard: DataCard = {
-      id: `card-${cards.length + 1}`,
+      id: `card-${Date.now()}`,
       title: `New Card ${cards.length + 1}`,
       dataSource: "",
+      robotId: "",
       visualizationType: "",
+      storageKey: "",
     };
     setCards([...cards, newCard]);
     setEditingCard(newCard);
@@ -187,7 +232,6 @@ export default function CustomDashboard() {
   return (
     <div className="px-4">
       <div className="flex justify-between items-center border-b border-gray-300 py-4">
-        {/* <h1 className="text-xl">Custom Viam Dashboard Builder</h1> */}
         <div className="flex space-x-2 items-center justify-center">
           <OrganizationSwitcher />
           <div className="px-1 text-gray-700">/</div>
@@ -218,27 +262,40 @@ export default function CustomDashboard() {
                     </Button>
                   </div>
                 ) : (
-                  cards.map((card, index) => (
-                    <Draggable
-                      key={card.id}
-                      draggableId={card.id}
-                      index={index}
-                    >
-                      {(provided) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                        >
-                          <DataVisualizationCard
-                            card={card}
-                            onEdit={() => setEditingCard(card)}
-                            onDelete={() => handleDeleteCard(card.id)}
-                          />
-                        </div>
-                      )}
-                    </Draggable>
-                  ))
+                  cards.map((card, index) => {
+                    console.log("Processing card with ID:", card.id);
+
+                    const storageKey = card.storageKey;
+                    console.log("Storage Key:", storageKey);
+
+                    const [n, a, orgId, locId] = storageKey.split("_");
+                    console.log("Extracted orgId:", orgId);
+                    console.log("Extracted locId:", locId);
+
+                    return (
+                      <Draggable
+                        key={card.id}
+                        draggableId={card.id}
+                        index={index}
+                      >
+                        {(provided) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                          >
+                            <DataVisualizationCard
+                              card={card}
+                              orgId={orgId}
+                              locId={locId}
+                              onEdit={() => setEditingCard(card)}
+                              onDelete={() => handleDeleteCard(card.id)}
+                            />
+                          </div>
+                        )}
+                      </Draggable>
+                    );
+                  })
                 )}
                 {provided.placeholder}
               </div>
@@ -267,16 +324,57 @@ export default function CustomDashboard() {
   );
 }
 
+const constructMqlQueryStagesForDataVisualizationCard = (
+  orgId: string,
+  locId: string,
+  robotId: string,
+  dataSource: string,
+  visualizationType: string
+) => {
+  return [
+    {
+      $match: {
+        organization_id: orgId, // "5e3a2211-d311-4685-b595-e53b894c3719",
+        location_id: locId, // "yiuf04fb9s",
+        robot_id: robotId, // "d4e8acde-d1b9-4ed6-b9aa-229db1211d78",
+      },
+    },
+    { $limit: 5 },
+  ];
+};
+
 const DataVisualizationCard: React.FC<{
-  card: {
-    id: string;
-    title: string;
-    dataSource: string;
-    visualizationType: string;
-  };
+  card: DataCard;
+  orgId: string;
+  locId: string;
   onEdit: () => void;
   onDelete: () => void;
-}> = ({ card, onEdit, onDelete }) => {
+}> = ({ card, orgId, locId, onEdit, onDelete }) => {
+  const { fetchTabularData, loading, error, data } =
+    useViamGetTabularDataByMQL();
+
+  useEffect(() => {
+    const mqlStages = constructMqlQueryStagesForDataVisualizationCard(
+      orgId,
+      locId,
+      card.robotId,
+      card.dataSource,
+      card.visualizationType
+    );
+    if (orgId) {
+      fetchTabularData(orgId, mqlStages).then(() => {
+        console.log("Data fetched successfully!");
+      });
+    }
+  }, [
+    orgId,
+    locId,
+    card.robotId,
+    card.dataSource,
+    card.visualizationType,
+    fetchTabularData,
+  ]);
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -295,7 +393,8 @@ const DataVisualizationCard: React.FC<{
         </DropdownMenu>
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold">Visualization Placeholder</div>
+        <div className="text-2xl font-bold">{card.title}</div>
+        <div className="">{JSON.stringify(data, null, 2)}</div>
       </CardContent>
       <CardFooter>
         <div className="text-xs text-muted-foreground">
@@ -307,31 +406,49 @@ const DataVisualizationCard: React.FC<{
 };
 
 const CardConfigurationForm: React.FC<{
-  card: {
-    id: string;
-    title: string;
-    dataSource: string;
-    visualizationType: string;
-  };
-  onSave: (card: {
-    id: string;
-    title: string;
-    dataSource: string;
-    visualizationType: string;
-  }) => void;
+  card: DataCard;
+  onSave: (card: DataCard) => void;
   locationMachines: Robot[];
 }> = ({ card, onSave, locationMachines }) => {
   const [title, setTitle] = useState(card.title);
   const [dataSource, setDataSource] = useState(card.dataSource);
-  const [machineSource, setMachineSource] = useState("Machine 1");
+  const [dataSourceRobotId, setDataSourceRobotId] = useState(
+    card.robotId || ""
+  );
+  const [machineSource, setMachineSource] = useState<Robot | undefined>(
+    undefined
+  );
+  const [dataCollectingComponents, setDataCollectingComponents] =
+    useState<any>();
   const [visualizationType, setVisualizationType] = useState(
     card.visualizationType
   );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({ ...card, title, dataSource, visualizationType });
+    onSave({
+      ...card,
+      title,
+      dataSource,
+      robotId: machineSource?.id || "",
+      visualizationType,
+    });
   };
+
+  const { fetchRobotParts, robotParts } = useGetViamRobotParts();
+
+  useEffect(() => {
+    if (machineSource?.id) {
+      fetchRobotParts(machineSource.id);
+    }
+  }, [machineSource, fetchRobotParts]);
+
+  useEffect(() => {
+    if (robotParts) {
+      const components = parseComponentsWithDataManager(robotParts);
+      setDataCollectingComponents(components);
+    }
+  }, [robotParts]);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -346,9 +463,19 @@ const CardConfigurationForm: React.FC<{
       </div>
       <div className="space-y-2">
         <Label htmlFor="machineSource">Machine</Label>
-        <Select value={machineSource} onValueChange={setMachineSource} required>
+        <Select
+          value={machineSource?.name || ""}
+          onValueChange={(val) => {
+            const machine = locationMachines.find(
+              (robot) => robot.name === val
+            );
+            setMachineSource(machine);
+            setDataSourceRobotId(machine?.id || "");
+          }}
+          required
+        >
           <SelectTrigger id="machineSource">
-            <SelectValue placeholder="Select a data source" />
+            <SelectValue placeholder="Select a machine" />
           </SelectTrigger>
           <SelectContent>
             {locationMachines?.map((robot) => (
@@ -361,14 +488,27 @@ const CardConfigurationForm: React.FC<{
       </div>
       <div className="space-y-2">
         <Label htmlFor="dataSource">Data Source</Label>
-        <Select value={dataSource} onValueChange={setDataSource} required>
+        <Select
+          value={dataSource}
+          onValueChange={(val) => {
+            const selectedComponent = dataCollectingComponents.find(
+              (component: any) => component.name === val
+            );
+            setDataSource(val);
+          }}
+          required
+          disabled={!dataCollectingComponents}
+        >
           <SelectTrigger id="dataSource">
             <SelectValue placeholder="Select a data source" />
           </SelectTrigger>
           <SelectContent>
-            {dataSources.map((source) => (
-              <SelectItem key={source} value={source}>
-                {source}
+            {dataCollectingComponents?.map((dataCollectingComponent: any) => (
+              <SelectItem
+                key={dataCollectingComponent.id}
+                value={dataCollectingComponent.name}
+              >
+                {dataCollectingComponent.name}
               </SelectItem>
             ))}
           </SelectContent>

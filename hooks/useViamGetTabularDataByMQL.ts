@@ -44,8 +44,15 @@ const useViamGetTabularDataByMQL = <
 
       try {
         // Serialize each MQL stage to BSON
-        const bsonQuery = mqlStages.map((stage) => BSON.serialize(stage));
-
+        const bsonQuery = mqlStages.map((stage) => {
+          console.log(`Serializing MQL stage: ${JSON.stringify(stage)}`);
+          return BSON.serialize(stage);
+        });
+        console.log(
+          `calling tabularDataByMQL with ${
+            bsonQuery.length
+          } stages (${JSON.stringify(mqlStages)}) and orgId: ${orgId}`
+        );
         // Execute the MQL query
         const response =
           await viamClientContext.client.dataClient.tabularDataByMQL(

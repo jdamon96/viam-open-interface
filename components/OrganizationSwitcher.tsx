@@ -117,17 +117,20 @@ export default function OrganizationSwitcher({
                   <CommandItem
                     key={org.id}
                     onSelect={() => handleOrganizationSelect(org)}
-                    className="text-sm hover:cursor-pointer text-gray-900"
+                    className="text-sm hover:cursor-pointer text-gray-900 flex items-center justify-between"
                   >
-                    <div className="flex items-center">
-                      <Users className="mr-2 h-4 w-4" />
-                      <span className="max-w-[100px] sm:max-w-[150px] truncate">
-                        {org.name}
-                      </span>
+                    <div className="flex items-center space-x-4">
+                      <Users className="h-4 w-4" />
+                      <div className="flex flex-col space-y-1">
+                        <span className="max-w-[100px] sm:max-w-[150px] truncate">
+                          {org.name}
+                        </span>
+                        {/* <small className="text-gray-500">{org.id}</small> */}
+                      </div>
                     </div>
                     <CheckIcon
                       className={cn(
-                        "ml-auto h-4 w-4",
+                        "ml-4 h-4 w-4",
                         currentlySelectedOrganization?.id === org.id
                           ? "opacity-100"
                           : "opacity-0"
