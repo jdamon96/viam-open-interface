@@ -16,6 +16,9 @@ import {
 } from "@/components/ui/card";
 import { Button } from "./ui/button";
 import { MoreVertical } from "lucide-react";
+import { DateRangePicker } from "./ui/date-range-picker";
+import { DateRange } from "react-day-picker";
+import { addDays } from "date-fns";
 
 export interface DataCard {
   id: string;
@@ -52,6 +55,10 @@ const DataVisualizationCard: React.FC<{
   onEdit: () => void;
   onDelete: () => void;
 }> = ({ card, orgId, locId, onEdit, onDelete }) => {
+  const [date, setDate] = React.useState<DateRange | undefined>({
+    from: new Date(2022, 0, 20),
+    to: addDays(new Date(2022, 0, 20), 20),
+  });
   const { fetchTabularData, loading, error, data } =
     useViamGetTabularDataByMQL();
 
@@ -81,18 +88,21 @@ const DataVisualizationCard: React.FC<{
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={onEdit}>Edit</DropdownMenuItem>
-            <DropdownMenuItem onClick={onDelete}>Delete</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex items-center space-x-2">
+          <DateRangePicker date={date} setDate={setDate} />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={onEdit}>Edit</DropdownMenuItem>
+              <DropdownMenuItem onClick={onDelete}>Delete</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{card.title}</div>
