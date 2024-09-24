@@ -33,18 +33,34 @@ const constructMqlQueryStagesForDataVisualizationCard = (
   orgId: string,
   locId: string,
   robotId: string,
+  date: DateRange | undefined,
   dataSource: string,
   visualizationType: string
 ) => {
+  const startTime = date?.from
+    ? date.from.toISOString()
+    : new Date(0).toISOString();
+  const endTime = date?.to ? date.to.toISOString() : new Date().toISOString();
+
   return [
     {
       $match: {
         organization_id: orgId, // "5e3a2211-d311-4685-b595-e53b894c3719",
         location_id: locId, // "yiuf04fb9s",
         robot_id: robotId, // "d4e8acde-d1b9-4ed6-b9aa-229db1211d78",
+        $expr: {
+          $and: [
+            {
+              $gte: ["$time_received", { $toDate: startTime }],
+            },
+            {
+              $lte: ["$time_received", { $toDate: endTime }],
+            },
+          ],
+        },
       },
     },
-    { $limit: 5 },
+    { $limit: 100 },
   ];
 };
 
@@ -56,8 +72,8 @@ const DataVisualizationCard: React.FC<{
   onDelete: () => void;
 }> = ({ card, orgId, locId, onEdit, onDelete }) => {
   const [date, setDate] = React.useState<DateRange | undefined>({
-    from: new Date(2022, 0, 20),
-    to: addDays(new Date(2022, 0, 20), 20),
+    from: addDays(new Date(), -7),
+    to: new Date(),
   });
   const { fetchTabularData, loading, error, data } =
     useViamGetTabularDataByMQL();
@@ -67,6 +83,7 @@ const DataVisualizationCard: React.FC<{
       orgId,
       locId,
       card.robotId,
+      date,
       card.dataSource,
       card.visualizationType
     );
