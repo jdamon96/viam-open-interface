@@ -30,21 +30,26 @@ export default function CustomDashboard() {
     setApiKeyId,
     locationMachines,
     currentlySelectedLocation,
+    currentlySelectedOrganization,
   } = useAppStore();
 
   const { config: apiConfig, setConfig: setApiConfig } = useApiConfig();
   const { cards, setCards } = useDashboardCards(
-    config?.id || "",
+    currentlySelectedOrganization?.id || "",
     currentlySelectedLocation?.id || ""
   );
   const [editingCard, setEditingCard] = useState<DataCard | null>(null);
   const { fetchRobotsAndSetInAppStore } = useListViamRobots();
 
   useEffect(() => {
-    if (currentlySelectedLocation?.id && config?.id) {
+    if (currentlySelectedLocation?.id && currentlySelectedOrganization?.id) {
       fetchRobotsAndSetInAppStore(currentlySelectedLocation.id);
     }
-  }, [currentlySelectedLocation?.id, config?.id, fetchRobotsAndSetInAppStore]);
+  }, [
+    currentlySelectedLocation?.id,
+    currentlySelectedOrganization?.id,
+    fetchRobotsAndSetInAppStore,
+  ]);
 
   useEffect(() => {
     if (apiConfig) {
@@ -72,7 +77,7 @@ export default function CustomDashboard() {
       dataSource: "",
       robotId: "",
       visualizationType: "",
-      storageKey: `${LOCALSTORAGE_CARDS_PREFIX}${config?.id}_${currentlySelectedLocation?.id}`,
+      storageKey: `${LOCALSTORAGE_CARDS_PREFIX}${currentlySelectedOrganization?.id}_${currentlySelectedLocation?.id}`,
     };
     setCards([...cards, newCard]);
     setEditingCard(newCard);
