@@ -16,6 +16,7 @@ import Header from "@/components/Header";
 import CardsList from "@/components/CardsList";
 import useDashboardCards from "@/hooks/useDashboardCards";
 import useApiConfig from "@/hooks/useApiConfig";
+import useLocalStorage from "@/hooks/useLocalStorage";
 
 export const LOCALSTORAGE_API_KEY = "API_KEY";
 const LOCALSTORAGE_CARDS_PREFIX = "DASHBOARD_CARDS_";
@@ -34,10 +35,28 @@ export default function CustomDashboard() {
   } = useAppStore();
 
   const { config: apiConfig, setConfig: setApiConfig } = useApiConfig();
-  const { cards, setCards } = useDashboardCards(
-    currentlySelectedOrganization?.id || "",
-    currentlySelectedLocation?.id || ""
-  );
+  const storageKey = `${LOCALSTORAGE_CARDS_PREFIX}${currentlySelectedOrganization?.id}_${currentlySelectedLocation?.id}`;
+  const [cards, setCards] = useState<DataCard[]>(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      const item = window.localStorage.getItem(storageKey);
+      return item ? JSON.parse(item) : [];
+    } catch (error) {
+      console.error(`Error reading localStorage key "${storageKey}":`, error);
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const item = window.localStorage.getItem(storageKey);
+      setCards(item ? JSON.parse(item) : []);
+    } catch (error) {
+      console.error(`Error reading localStorage key "${storageKey}":`, error);
+    }
+  }, [storageKey]);
+
   const [editingCard, setEditingCard] = useState<DataCard | null>(null);
   const { fetchRobotsAndSetInAppStore } = useListViamRobots();
 
