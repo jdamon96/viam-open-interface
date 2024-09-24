@@ -1,20 +1,24 @@
 import { create } from "zustand";
 
-interface Organization {
+export interface Organization {
   id: string;
   name: string;
   description?: string;
   createdAt?: string;
 }
 
-interface Location {
+export interface Location {
   id: string;
   name: string;
   description?: string;
   createdAt?: string;
 }
 
-interface Machine {
+export interface SupplementedLocation extends Location {
+  robotCount?: number;
+}
+
+export interface Machine {
   id: string;
   name: string;
   description?: string;
@@ -24,8 +28,10 @@ interface Machine {
 interface AppState {
   availableOrganizations: Organization[];
   setAvailableOrganizations: (organizations: Organization[]) => void;
-  availableLocations: Location[];
-  setAvailableLocations: (locations: Location[]) => void;
+  availableLocations: (Location | SupplementedLocation)[];
+  setAvailableLocations: (
+    locations: (Location | SupplementedLocation)[]
+  ) => void;
   currentlySelectedOrganization: Organization | null;
   setCurrentlySelectedOrganization: (organization: Organization | null) => void;
   currentlySelectedLocation: Location | null;

@@ -111,28 +111,35 @@ export default function LocationSwitcher({ className }: LocationSwitcherProps) {
               ) : error ? (
                 <CommandItem disabled>Error loading locations</CommandItem>
               ) : availableLocations && availableLocations.length > 0 ? (
-                availableLocations.map((loc) => (
-                  <CommandItem
-                    key={loc.id}
-                    onSelect={() => handleLocationSelect(loc)}
-                    className="text-sm hover:cursor-pointer text-gray-900"
-                  >
-                    <div className="flex items-center">
-                      <MapPin className="mr-2 h-4 w-4" />
-                      <span className="max-w-[100px] sm:max-w-[150px] truncate">
-                        {loc.name}
-                      </span>
-                    </div>
-                    <CheckIcon
-                      className={cn(
-                        "ml-auto h-4 w-4",
-                        currentlySelectedLocation?.id === loc.id
-                          ? "opacity-100"
-                          : "opacity-0"
-                      )}
-                    />
-                  </CommandItem>
-                ))
+                availableLocations
+                  .sort((a, b) => {
+                    const robotCountA = "robotCount" in a ? a.robotCount : 0;
+                    const robotCountB = "robotCount" in b ? b.robotCount : 0;
+                    return (robotCountB ?? 0) - (robotCountA ?? 0);
+                  })
+                  .map((loc) => (
+                    <CommandItem
+                      key={loc.id}
+                      onSelect={() => handleLocationSelect(loc)}
+                      className="text-sm hover:cursor-pointer text-gray-900"
+                    >
+                      <div className="flex items-center">
+                        <MapPin className="mr-2 h-4 w-4" />
+                        <span className="">
+                          {loc.name} ({"robotCount" in loc ? loc.robotCount : 0}{" "}
+                          machines)
+                        </span>
+                      </div>
+                      <CheckIcon
+                        className={cn(
+                          "ml-auto h-4 w-4",
+                          currentlySelectedLocation?.id === loc.id
+                            ? "opacity-100"
+                            : "opacity-0"
+                        )}
+                      />
+                    </CommandItem>
+                  ))
               ) : (
                 <CommandItem disabled>No locations available</CommandItem>
               )}

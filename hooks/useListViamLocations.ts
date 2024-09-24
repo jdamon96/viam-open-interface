@@ -47,9 +47,20 @@ const useListViamLocations = (): UseListViamLocationsResult => {
         console.debug("Fetching list of locations...");
         const locations =
           await viamClientContext.client.appClient.listLocations(orgId);
+
+        const supplementedLocations = [];
+        for (const loc of locations) {
+          const robots = await viamClientContext.client.appClient.listRobots(
+            loc.id
+          );
+          supplementedLocations.push({
+            ...loc,
+            robotCount: robots.length,
+          });
+        }
         if (locations && locations.length > 0) {
           console.debug("Locations fetched successfully:", locations);
-          setAvailableLocations(locations);
+          setAvailableLocations(supplementedLocations);
         } else {
           const errorMsg = "No locations found.";
           console.warn(errorMsg);
