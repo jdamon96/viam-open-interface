@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { Dispatch, SetStateAction, useEffect } from "react";
 import useViamGetTabularDataByMQL from "@/hooks/useViamGetTabularDataByMQL";
 import {
   DropdownMenu,
@@ -28,38 +28,48 @@ export interface DataCard {
   storageKey: string; // has form  "DASHBOARD_CARDS_{ORG_ID}_{LOC_ID}", e.g. "DASHBOARD_CARDS_85a3a4fc-f195-4d88-9ccd-26dc10f7755b_yiuf04fb9s"
   aggregationStages: any[];
   visualizationType: string;
+  dateRange?: DateRange; // Add dateRange to DataCard interface
 }
 
-const constructMqlQueryStagesForDataVisualizationCard = (
+export const constructMqlQueryStagesForDataVisualizationCard = (
   orgId: string,
   locId: string,
-  robotId: string,
-  date: DateRange | undefined,
-  dataSource: string,
-  visualizationType: string
+  robotId?: string,
+  date?: DateRange,
+  dataSource?: string,
+  visualizationType?: string
 ) => {
   const startTime = date?.from
     ? date.from.toISOString()
     : new Date(0).toISOString();
   const endTime = date?.to ? date.to.toISOString() : new Date().toISOString();
 
+  const matchStage: any = {
+    organization_id: orgId, // "5e3a2211-d311-4685-b595-e53b894c3719",
+    location_id: locId, // "yiuf04fb9s",
+    $expr: {
+      $and: [
+        {
+          $gte: ["$time_received", { $toDate: startTime }],
+        },
+        {
+          $lte: ["$time_received", { $toDate: endTime }],
+        },
+      ],
+    },
+  };
+
+  if (robotId) {
+    matchStage.robot_id = robotId; // "d4e8acde-d1b9-4ed6-b9aa-229db1211d78"
+  }
+
+  if (dataSource) {
+    matchStage.component_name = dataSource;
+  }
+
   return [
     {
-      $match: {
-        organization_id: orgId, // "5e3a2211-d311-4685-b595-e53b894c3719",
-        location_id: locId, // "yiuf04fb9s",
-        robot_id: robotId, // "d4e8acde-d1b9-4ed6-b9aa-229db1211d78",
-        $expr: {
-          $and: [
-            {
-              $gte: ["$time_received", { $toDate: startTime }],
-            },
-            {
-              $lte: ["$time_received", { $toDate: endTime }],
-            },
-          ],
-        },
-      },
+      $match: matchStage,
     },
     { $limit: 100 },
   ];
@@ -71,11 +81,14 @@ const DataVisualizationCard: React.FC<{
   locId: string;
   onEdit: () => void;
   onDelete: () => void;
-}> = ({ card, orgId, locId, onEdit, onDelete }) => {
-  const [date, setDate] = React.useState<DateRange | undefined>({
-    from: addDays(new Date(), -7),
-    to: new Date(),
-  });
+  onSave: (card: DataCard) => void; // Add onSave prop
+}> = ({ card, orgId, locId, onEdit, onDelete, onSave }) => {
+  const [date, setDate] = React.useState<DateRange | undefined>(
+    card.dateRange ?? {
+      from: addDays(new Date(), -7),
+      to: new Date(),
+    }
+  );
   const { fetchTabularData, loading, error, data } =
     useViamGetTabularDataByMQL();
 
@@ -100,14 +113,23 @@ const DataVisualizationCard: React.FC<{
     card.dataSource,
     card.visualizationType,
     fetchTabularData,
+    date, // Add date to dependency array
   ]);
+
+  const handleDateChange = (newDate: DateRange | undefined) => {
+    setDate(newDate as DateRange | undefined);
+    onSave({ ...card, dateRange: newDate });
+  };
 
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
         <div className="flex items-center space-x-2">
-          <DateRangePicker date={date} setDate={setDate} />
+          <DateRangePicker
+            date={date}
+            setDate={(date) => handleDateChange(date as DateRange | undefined)}
+          />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">

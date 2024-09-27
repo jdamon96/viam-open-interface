@@ -174,9 +174,12 @@ export default function CustomDashboard() {
         }}
       >
         <DialogContent className={isQueryBuilder ? "w-[1200px]" : "w-[800px]"}>
-          <DialogHeader>
-            <DialogTitle>Configure Data Visualization Card</DialogTitle>
-          </DialogHeader>
+          {!isQueryBuilder && (
+            <DialogTitle className="font-normal">
+              Configure Data Visualization Card
+            </DialogTitle>
+          )}
+
           {editingCard && (
             <DataVisualizationCardConfigurationForm
               card={editingCard}

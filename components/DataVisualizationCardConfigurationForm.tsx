@@ -1,9 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { DataCard } from "./DataVisualizationCard";
+import {
+  constructMqlQueryStagesForDataVisualizationCard,
+  DataCard,
+} from "./DataVisualizationCard";
 import useGetViamRobotParts from "@/hooks/useGetViamRobotParts";
 import { Robot } from "@/hooks/useListViamRobots";
 import { parseComponentsWithDataManager } from "@/lib/utils";
-
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -14,9 +22,10 @@ import {
   SelectValue,
 } from "./ui/select";
 import { Button } from "./ui/button";
-import { Braces, Pencil, RefreshCcw, Trash } from "lucide-react";
+import { Braces, LockIcon, Pencil, RefreshCcw, Trash } from "lucide-react";
 
 import { Aggregator } from "mingo"; // Import Mingo
+import useAppStore from "@/store/zustand";
 
 // Mock data for visualization types
 const visualizationTypes = [
@@ -45,6 +54,7 @@ interface AggregationPipelineStageProps {
   intermediateResult: any;
   updateStage: (index: number, updatedStage: AggregationStage) => void;
   removeStage: (index: number) => void;
+  locked: boolean; // New prop
 }
 
 const AggregationPipelineStage: React.FC<AggregationPipelineStageProps> = ({
@@ -53,6 +63,7 @@ const AggregationPipelineStage: React.FC<AggregationPipelineStageProps> = ({
   intermediateResult,
   updateStage,
   removeStage,
+  locked, // New prop
 }) => {
   // Utility function to split an aggregation pipeline stage into operator and body
   const splitAggregationStage = (
@@ -63,20 +74,23 @@ const AggregationPipelineStage: React.FC<AggregationPipelineStageProps> = ({
     return { operator, body };
   };
   const { operator, body } = splitAggregationStage(stage);
-
   return (
     <div
       key={index}
-      className="flex space-x-4 items-start p-4 border border-gray-200 rounded"
+      className={`flex space-x-4 items-start p-4 border border-gray-200 rounded ${
+        locked ? "bg-gray-200" : ""
+      }`}
     >
       {/* Left Side: Stage Operator and Definition */}
       <div className="flex-1">
+        <Label className="text-sm">Aggregation Pipeline Stage</Label>
         <div className="flex space-x-2 items-center mb-2">
           <Select
             value={operator}
             onValueChange={(val) =>
-              updateStage(index, { ...stage, operator: val })
+              !locked && updateStage(index, { ...stage, operator: val })
             }
+            disabled={locked} // Disable if locked
           >
             <SelectTrigger id={`operator-${index}`}>
               <SelectValue placeholder="Select Operator" />
@@ -91,15 +105,19 @@ const AggregationPipelineStage: React.FC<AggregationPipelineStageProps> = ({
             </SelectContent>
           </Select>
         </div>
-        <div>
+        <div className="w-full">
           <pre
-            contentEditable={true}
-            className="bg-gray-100 p-4 rounded-sm max-w-lg text-sm break-words whitespace-pre-wrap"
+            contentEditable={!locked}
+            className={`w-full bg-gray-100 p-4 rounded-sm text-sm break-words whitespace-pre-wrap ${
+              locked ? "cursor-not-allowed" : ""
+            }`}
+            style={{ width: "100%", maxHeight: "200px", overflowY: "auto" }}
           >
             <code
               id={`definition-${index}`}
               className="break-words whitespace-pre-wrap"
               onInput={(e) =>
+                !locked &&
                 updateStage(index, {
                   ...stage,
                   definition: e.currentTarget.textContent ?? "",
@@ -125,15 +143,31 @@ const AggregationPipelineStage: React.FC<AggregationPipelineStageProps> = ({
       </div>
 
       {/* Remove Stage Button */}
-      <Button
-        type="button"
-        size={"icon"}
-        variant="destructive"
-        onClick={() => removeStage(index)}
-        className="mt-2"
-      >
-        <Trash size={16} />
-      </Button>
+      {locked ? (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <LockIcon size={16} className="text-gray-500 mt-2" />
+            </TooltipTrigger>
+            <TooltipContent className="max-w-[200px] bg-gray-800 text-white border-none">
+              <p>
+                These stages are locked while in the query builder (so you can
+                test your query with 3 records instead of all data)
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      ) : (
+        <Button
+          type="button"
+          size={"icon"}
+          variant="destructive"
+          onClick={() => removeStage(index)}
+          className="mt-2"
+        >
+          <Trash size={16} />
+        </Button>
+      )}
     </div>
   );
 };
@@ -164,6 +198,20 @@ const DataVisualizationCardConfigurationForm: React.FC<
   };
 
   const [stages, setStages] = useState<any[]>(card.aggregationStages ?? []);
+  const { currentlySelectedLocation, currentlySelectedOrganization } =
+    useAppStore();
+
+  useEffect(() => {
+    if (!currentlySelectedLocation || !currentlySelectedOrganization) return;
+    constructMqlQueryStagesForDataVisualizationCard(
+      currentlySelectedLocation?.id,
+      currentlySelectedOrganization?.id,
+      card.robotId,
+      card.dateRange,
+      card.dataSource,
+      card.visualizationType
+    );
+  }, []);
 
   const [intermediateResults, setIntermediateResults] = useState<any[][]>([]);
 
@@ -236,12 +284,32 @@ const DataVisualizationCardConfigurationForm: React.FC<
     setStages(newStages);
   };
 
+  // Update stages whenever relevant variables change
+  useEffect(() => {
+    if (!currentlySelectedLocation || !currentlySelectedOrganization) return;
+    const updatedStages = constructMqlQueryStagesForDataVisualizationCard(
+      currentlySelectedLocation?.id,
+      currentlySelectedOrganization?.id,
+      dataSourceRobotId,
+      card.dateRange,
+      dataSource,
+      visualizationType
+    );
+    setStages(updatedStages);
+  }, [
+    dataSource,
+    dataSourceRobotId,
+    visualizationType,
+    currentlySelectedLocation,
+    currentlySelectedOrganization,
+  ]);
+
   return (
     <>
       {isQueryBuilder ? (
         <div className="p-4">
-          <div className="flex items-center justify-between py-4">
-            <h2 className="text-xl font-bold mb-4">Query Builder</h2>
+          <div className="flex items-center justify-between py-2">
+            <h2 className="text-lg">Query Builder</h2>
             <Button variant={"secondary"} className="bg-blue-100 text-blue-800">
               <RefreshCcw size={16} className="mr-2" />
               Test Query
@@ -256,6 +324,7 @@ const DataVisualizationCardConfigurationForm: React.FC<
                 intermediateResult={intermediateResults[index]}
                 updateStage={updateStage}
                 removeStage={removeStage}
+                locked={index === 0 || index === 1} // Lock first two stages
               />
             ))}
 
@@ -271,7 +340,6 @@ const DataVisualizationCardConfigurationForm: React.FC<
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
-          {JSON.stringify(card)}
           <div className="space-y-2">
             <Label htmlFor="title">Card Title</Label>
             <Input
@@ -379,7 +447,14 @@ const DataVisualizationCardConfigurationForm: React.FC<
                   className="p-4 bg-gray-50 rounded-lg w-full flex items-center justify-between text-sm relative"
                 >
                   <pre>
-                    <code>{JSON.stringify(stage, null, 2)}</code>
+                    <code className="text-gray-600">
+                      {JSON.stringify(stage, null, 2)
+                        .split("\n")
+                        .slice(0, 3)
+                        .join("\n")}
+                      {JSON.stringify(stage, null, 2).split("\n").length > 3 &&
+                        " ..."}
+                    </code>
                   </pre>
                   <Button
                     variant="ghost"
