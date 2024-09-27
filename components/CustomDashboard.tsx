@@ -97,6 +97,17 @@ export default function CustomDashboard() {
       robotId: "",
       visualizationType: "",
       storageKey: `${LOCALSTORAGE_CARDS_PREFIX}${currentlySelectedOrganization?.id}_${currentlySelectedLocation?.id}`,
+      aggregationStages: [
+        {
+          $match: {
+            organization_id: currentlySelectedOrganization?.id,
+            location_id: currentlySelectedLocation?.id,
+          },
+        },
+        {
+          $limit: 5,
+        },
+      ],
     };
     setCards([...cards, newCard]);
     setEditingCard(newCard);
@@ -128,6 +139,7 @@ export default function CustomDashboard() {
     },
     [apiKey, apiKeyId, setConfig, setApiConfig]
   );
+  const [isQueryBuilder, setIsQueryBuilder] = useState(false);
 
   if (!config) {
     return (
@@ -154,8 +166,14 @@ export default function CustomDashboard() {
           onDeleteCard={handleDeleteCard}
         />
       </div>
-      <Dialog open={!!editingCard} onOpenChange={() => setEditingCard(null)}>
-        <DialogContent>
+      <Dialog
+        open={!!editingCard}
+        onOpenChange={() => {
+          setEditingCard(null);
+          setIsQueryBuilder(false);
+        }}
+      >
+        <DialogContent className={isQueryBuilder ? "w-[1200px]" : "w-[800px]"}>
           <DialogHeader>
             <DialogTitle>Configure Data Visualization Card</DialogTitle>
           </DialogHeader>
@@ -164,6 +182,7 @@ export default function CustomDashboard() {
               card={editingCard}
               onSave={handleSaveCard}
               locationMachines={locationMachines}
+              onModeChange={setIsQueryBuilder} // Pass the callback
             />
           )}
         </DialogContent>

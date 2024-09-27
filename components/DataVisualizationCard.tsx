@@ -26,6 +26,7 @@ export interface DataCard {
   robotId: string;
   dataSource: string;
   storageKey: string; // has form  "DASHBOARD_CARDS_{ORG_ID}_{LOC_ID}", e.g. "DASHBOARD_CARDS_85a3a4fc-f195-4d88-9ccd-26dc10f7755b_yiuf04fb9s"
+  aggregationStages: any[];
   visualizationType: string;
 }
 
