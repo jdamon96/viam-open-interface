@@ -26,6 +26,7 @@ import { Braces, LockIcon, Pencil, RefreshCcw, Trash } from "lucide-react";
 
 import { Aggregator } from "mingo"; // Import Mingo
 import useAppStore from "@/store/zustand";
+import useViamGetTabularDataByMQL from "@/hooks/useViamGetTabularDataByMQL";
 
 // Mock data for visualization types
 const visualizationTypes = [
@@ -203,15 +204,23 @@ const DataVisualizationCardConfigurationForm: React.FC<
 
   useEffect(() => {
     if (!currentlySelectedLocation || !currentlySelectedOrganization) return;
-    constructMqlQueryStagesForDataVisualizationCard(
+    const updatedStages = constructMqlQueryStagesForDataVisualizationCard(
       currentlySelectedLocation?.id,
       currentlySelectedOrganization?.id,
-      card.robotId,
+      dataSourceRobotId,
       card.dateRange,
-      card.dataSource,
-      card.visualizationType
+      dataSource,
+      visualizationType,
+      true // Pass true for queryBuilder
     );
-  }, []);
+    setStages(updatedStages);
+  }, [
+    dataSource,
+    dataSourceRobotId,
+    visualizationType,
+    currentlySelectedLocation,
+    currentlySelectedOrganization,
+  ]);
 
   const [intermediateResults, setIntermediateResults] = useState<any[][]>([]);
 
@@ -241,32 +250,83 @@ const DataVisualizationCardConfigurationForm: React.FC<
     }
   }, [robotParts]);
 
+  const { fetchTabularData, loading, error, data } =
+    useViamGetTabularDataByMQL();
+
+  useEffect(() => {
+    fetchTabularData(currentlySelectedOrganization?.id!, stages);
+  }, [stages]);
+
   // Function to apply the aggregation pipeline using Mingo
-  // const applyPipeline = () => {
-  //   let data = initialData;
-  //   const results: any[][] = [];
+  const applyPipeline = async () => {
+    const results: any[][] = [];
 
-  //   stages.forEach((stage, index) => {
-  //     try {
-  //       const aggregator = new Aggregator([
-  //         JSON.parse(`{ "${stage.operator}": ${stage.definition} }`),
-  //       ]);
-  //       const cursor = aggregator.run(data);
-  //       data = cursor; // Directly assign cursor to data
-  //       results.push(data);
-  //     } catch (error) {
-  //       console.error(`Error in stage ${index + 1}:`, error);
-  //       results.push([`Error: ${error}`]);
-  //     }
-  //   });
+    if (stages.length === 0) {
+      console.error("No stages defined");
+      return;
+    }
 
-  //   setIntermediateResults(results);
-  // };
+    try {
+      console.log("Starting pipeline application...");
 
-  // // Apply pipeline whenever stages change
-  // useEffect(() => {
-  //   applyPipeline();
-  // }, [stages]);
+      // Fetch initial data with the first stage
+      const initialStage = stages[0];
+      console.log("Initial stage:", initialStage);
+
+      const initialPipeline = [
+        {
+          [Object.keys(initialStage)[0]]: Object.values(initialStage)[0],
+        },
+      ];
+      console.log("Initial pipeline:", initialPipeline);
+
+      const initialData = await fetchTabularData(
+        currentlySelectedOrganization?.id!,
+        initialPipeline
+      );
+      if (!initialData) {
+        console.error("Failed to fetch initial data");
+        return;
+      }
+      console.log("Initial data fetched:", initialData);
+
+      results.push(initialData);
+
+      // Apply subsequent stages iteratively
+      let currentData = initialData;
+      for (let i = 1; i < stages.length; i++) {
+        const stage = stages[i];
+        console.log(`Applying stage ${i}:`, stage);
+
+        const pipeline = [
+          { [stage.operator]: JSON.parse(stage.definition) },
+          { $limit: 3 }, // Add $limit implicitly
+        ];
+        console.log(`Pipeline for stage ${i}:`, pipeline);
+
+        const aggregator = new Aggregator(pipeline);
+        const cursor = aggregator.run(currentData);
+        currentData = cursor;
+        console.log(`Data after stage ${i}:`, currentData);
+
+        results.push(currentData);
+      }
+      console.log("Pipeline application completed.");
+
+      setIntermediateResults(results);
+    } catch (error) {
+      console.error("Error applying pipeline:", error);
+      results.push([`Error: ${error}`]);
+      setIntermediateResults(results);
+    }
+  };
+
+  // Apply pipeline whenever stages change
+  useEffect(() => {
+    if (stages.length > 0) {
+      applyPipeline();
+    }
+  }, [stages]);
 
   // Handler functions for Query Builder
   const addStage = () => {
@@ -284,33 +344,17 @@ const DataVisualizationCardConfigurationForm: React.FC<
     setStages(newStages);
   };
 
-  // Update stages whenever relevant variables change
-  useEffect(() => {
-    if (!currentlySelectedLocation || !currentlySelectedOrganization) return;
-    const updatedStages = constructMqlQueryStagesForDataVisualizationCard(
-      currentlySelectedLocation?.id,
-      currentlySelectedOrganization?.id,
-      dataSourceRobotId,
-      card.dateRange,
-      dataSource,
-      visualizationType
-    );
-    setStages(updatedStages);
-  }, [
-    dataSource,
-    dataSourceRobotId,
-    visualizationType,
-    currentlySelectedLocation,
-    currentlySelectedOrganization,
-  ]);
-
   return (
     <>
       {isQueryBuilder ? (
         <div className="p-4">
           <div className="flex items-center justify-between py-2">
             <h2 className="text-lg">Query Builder</h2>
-            <Button variant={"secondary"} className="bg-blue-100 text-blue-800">
+            <Button
+              variant={"secondary"}
+              className="bg-blue-100 text-blue-800"
+              onClick={applyPipeline} // Apply pipeline on button click
+            >
               <RefreshCcw size={16} className="mr-2" />
               Test Query
             </Button>
@@ -335,7 +379,10 @@ const DataVisualizationCardConfigurationForm: React.FC<
 
           <div className="mt-6 flex justify-end space-x-4">
             <Button onClick={() => toggleQueryBuilder(false)}>Back</Button>
-            <Button onClick={() => alert("applyPipeline")}>Refresh</Button>
+            <Button onClick={applyPipeline}>Refresh</Button>
+          </div>
+          <div className="mt-4 text-xs text-gray-500">
+            Note: The data is limited to 3 records for experimentation purposes.
           </div>
         </div>
       ) : (

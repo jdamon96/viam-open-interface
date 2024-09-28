@@ -30,14 +30,14 @@ export interface DataCard {
   visualizationType: string;
   dateRange?: DateRange; // Add dateRange to DataCard interface
 }
-
 export const constructMqlQueryStagesForDataVisualizationCard = (
   orgId: string,
   locId: string,
   robotId?: string,
   date?: DateRange,
   dataSource?: string,
-  visualizationType?: string
+  visualizationType?: string,
+  queryBuilder: boolean = false // Add queryBuilder argument with default value false
 ) => {
   const startTime = date?.from
     ? date.from.toISOString()
@@ -71,7 +71,7 @@ export const constructMqlQueryStagesForDataVisualizationCard = (
     {
       $match: matchStage,
     },
-    { $limit: 100 },
+    // Remove explicit $limit stage
   ];
 };
 

@@ -9,7 +9,7 @@ interface UseViamGetTabularDataByMQLResult<T = any> {
   data?: T[];
   loading: boolean;
   error?: Error;
-  fetchTabularData: (orgId: string, mqlStages: object[]) => Promise<void>;
+  fetchTabularData: (orgId: string, mqlStages: object[]) => Promise<T[]>;
 }
 
 /**
@@ -32,10 +32,10 @@ const useViamGetTabularDataByMQL = <
    * @param {object[]} mqlStages - An array of MQL query stages.
    */
   const fetchTabularData = useCallback(
-    async (orgId: string, mqlStages: object[]) => {
+    async (orgId: string, mqlStages: object[]): Promise<T[]> => {
       if (!viamClientContext?.client?.dataClient) {
         setError(new Error("Viam data client is not initialized."));
-        return;
+        return [];
       }
 
       setLoading(true);
@@ -43,15 +43,20 @@ const useViamGetTabularDataByMQL = <
       setData(undefined);
 
       try {
+        // Add $limit stage implicitly
+        const limitedMqlStages = mqlStages
+          .map((stage) => [stage, { $limit: 3 }])
+          .flat();
+
         // Serialize each MQL stage to BSON
-        const bsonQuery = mqlStages.map((stage) => {
+        const bsonQuery = limitedMqlStages.map((stage) => {
           console.log(`Serializing MQL stage: ${JSON.stringify(stage)}`);
           return BSON.serialize(stage);
         });
         console.log(
           `calling tabularDataByMQL with ${
             bsonQuery.length
-          } stages (${JSON.stringify(mqlStages)}) and orgId: ${orgId}`
+          } stages (${JSON.stringify(limitedMqlStages)}) and orgId: ${orgId}`
         );
         // Execute the MQL query
         const response =
@@ -61,9 +66,11 @@ const useViamGetTabularDataByMQL = <
           );
 
         setData(response as T[]);
+        return (response as T[]) ?? []; // Return the fetched data
       } catch (err: any) {
         console.error("Error fetching tabular data:", err);
         setError(err);
+        return []; // Return an empty array in case of error
       } finally {
         setLoading(false);
       }
