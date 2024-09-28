@@ -58,6 +58,7 @@ export default function CustomDashboard() {
   }, [storageKey]);
 
   const [editingCard, setEditingCard] = useState<DataCard | null>(null);
+  const [userIsEditingCard, setUserIsEditingCard] = useState(false);
   const { fetchRobotsAndSetInAppStore } = useListViamRobots();
 
   useEffect(() => {
@@ -76,19 +77,6 @@ export default function CustomDashboard() {
     }
   }, [apiConfig, setConfig]);
 
-  const handleDragEnd = useCallback(
-    (result: DropResult) => {
-      if (!result.destination) return;
-
-      const reorderedCards = Array.from(cards);
-      const [movedCard] = reorderedCards.splice(result.source.index, 1);
-      reorderedCards.splice(result.destination.index, 0, movedCard);
-
-      setCards(reorderedCards);
-    },
-    [cards, setCards]
-  );
-
   const handleAddCard = useCallback(() => {
     const newCard: DataCard = {
       id: `card-${Date.now()}`,
@@ -99,18 +87,17 @@ export default function CustomDashboard() {
       storageKey: `${LOCALSTORAGE_CARDS_PREFIX}${currentlySelectedOrganization?.id}_${currentlySelectedLocation?.id}`,
       aggregationStages: [
         {
-          $match: {
+          operator: "$match",
+          definition: {
             organization_id: currentlySelectedOrganization?.id,
             location_id: currentlySelectedLocation?.id,
           },
-        },
-        {
-          $limit: 5,
         },
       ],
     };
     setCards([...cards, newCard]);
     setEditingCard(newCard);
+    setUserIsEditingCard(true);
   }, [cards, setCards, config, currentlySelectedLocation]);
 
   const handleSaveCard = useCallback(
@@ -119,6 +106,7 @@ export default function CustomDashboard() {
         cards.map((card) => (card.id === updatedCard.id ? updatedCard : card))
       );
       setEditingCard(null);
+      setUserIsEditingCard(false);
     },
     [cards, setCards]
   );
@@ -160,10 +148,13 @@ export default function CustomDashboard() {
         <h1 className="py-8 text-2xl">Visualize your machine data</h1>
         <CardsList
           cards={cards}
-          onDragEnd={handleDragEnd}
           onAddCard={handleAddCard}
-          onEditCard={setEditingCard}
+          onEditCard={(card) => {
+            setEditingCard(card);
+            setUserIsEditingCard(true);
+          }}
           onDeleteCard={handleDeleteCard}
+          userIsEditingCard={userIsEditingCard}
         />
       </div>
       <Dialog
@@ -171,6 +162,7 @@ export default function CustomDashboard() {
         onOpenChange={() => {
           setEditingCard(null);
           setIsQueryBuilder(false);
+          setUserIsEditingCard(false);
         }}
       >
         <DialogContent className={isQueryBuilder ? "w-[1200px]" : "w-[800px]"}>

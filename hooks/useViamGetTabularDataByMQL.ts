@@ -43,20 +43,15 @@ const useViamGetTabularDataByMQL = <
       setData(undefined);
 
       try {
-        // Add $limit stage implicitly
-        const limitedMqlStages = mqlStages
-          .map((stage) => [stage, { $limit: 3 }])
-          .flat();
-
         // Serialize each MQL stage to BSON
-        const bsonQuery = limitedMqlStages.map((stage) => {
+        const bsonQuery = mqlStages.map((stage) => {
           console.log(`Serializing MQL stage: ${JSON.stringify(stage)}`);
           return BSON.serialize(stage);
         });
         console.log(
           `calling tabularDataByMQL with ${
             bsonQuery.length
-          } stages (${JSON.stringify(limitedMqlStages)}) and orgId: ${orgId}`
+          } stages (${JSON.stringify(mqlStages)}) and orgId: ${orgId}`
         );
         // Execute the MQL query
         const response =

@@ -19,6 +19,7 @@ import { MoreVertical } from "lucide-react";
 import { DateRangePicker } from "./ui/date-range-picker";
 import { DateRange } from "react-day-picker";
 import { addDays } from "date-fns";
+import { AggregationStage } from "@/types/AggregationStage";
 
 export interface DataCard {
   id: string;
@@ -38,7 +39,7 @@ export const constructMqlQueryStagesForDataVisualizationCard = (
   dataSource?: string,
   visualizationType?: string,
   queryBuilder: boolean = false // Add queryBuilder argument with default value false
-) => {
+): AggregationStage[] => {
   const startTime = date?.from
     ? date.from.toISOString()
     : new Date(0).toISOString();
@@ -69,9 +70,9 @@ export const constructMqlQueryStagesForDataVisualizationCard = (
 
   return [
     {
-      $match: matchStage,
+      operator: "$match",
+      definition: matchStage,
     },
-    // Remove explicit $limit stage
   ];
 };
 
@@ -81,8 +82,9 @@ const DataVisualizationCard: React.FC<{
   locId: string;
   onEdit: () => void;
   onDelete: () => void;
-  onSave: (card: DataCard) => void; // Add onSave prop
-}> = ({ card, orgId, locId, onEdit, onDelete, onSave }) => {
+  onSave: (card: DataCard) => void;
+  userIsEditingCard: boolean;
+}> = ({ card, orgId, locId, onEdit, onDelete, onSave, userIsEditingCard }) => {
   const [date, setDate] = React.useState<DateRange | undefined>(
     card.dateRange ?? {
       from: addDays(new Date(), -7),
@@ -93,18 +95,20 @@ const DataVisualizationCard: React.FC<{
     useViamGetTabularDataByMQL();
 
   useEffect(() => {
-    const mqlStages = constructMqlQueryStagesForDataVisualizationCard(
-      orgId,
-      locId,
-      card.robotId,
-      date,
-      card.dataSource,
-      card.visualizationType
-    );
-    if (orgId) {
-      fetchTabularData(orgId, mqlStages).then(() => {
-        console.log("Data fetched successfully!");
-      });
+    if (!userIsEditingCard) {
+      const mqlStages = constructMqlQueryStagesForDataVisualizationCard(
+        orgId,
+        locId,
+        card.robotId,
+        date,
+        card.dataSource,
+        card.visualizationType
+      );
+      if (orgId) {
+        fetchTabularData(orgId, mqlStages).then(() => {
+          console.log("Data fetched successfully!");
+        });
+      }
     }
   }, [
     orgId,
@@ -114,6 +118,7 @@ const DataVisualizationCard: React.FC<{
     card.visualizationType,
     fetchTabularData,
     date, // Add date to dependency array
+    userIsEditingCard, // Add userIsEditingCard to dependency array
   ]);
 
   const handleDateChange = (newDate: DateRange | undefined) => {
@@ -123,7 +128,7 @@ const DataVisualizationCard: React.FC<{
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 max-w-lg">
         <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
         <div className="flex items-center space-x-2">
           <DateRangePicker
