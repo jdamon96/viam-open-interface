@@ -104,8 +104,8 @@ const DataVisualizationCardConfigurationForm: React.FC<
       return;
 
     const updatedStages = constructMqlQueryStagesForDataVisualizationCard(
-      currentlySelectedLocation.id,
       currentlySelectedOrganization.id,
+      currentlySelectedLocation.id,
       dataSourceRobotId,
       card.dateRange,
       dataSource,
@@ -268,14 +268,16 @@ const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
             <SelectValue placeholder="Select a data source" />
           </SelectTrigger>
           <SelectContent>
-            {dataCollectingComponents?.map((dataCollectingComponent: any) => (
-              <SelectItem
-                key={dataCollectingComponent.id}
-                value={dataCollectingComponent.name}
-              >
-                {dataCollectingComponent.name}
-              </SelectItem>
-            ))}
+            {dataCollectingComponents?.map(
+              (dataCollectingComponent: any, idx: number) => (
+                <SelectItem
+                  key={dataCollectingComponent.id + idx}
+                  value={dataCollectingComponent.name}
+                >
+                  {dataCollectingComponent.name}
+                </SelectItem>
+              )
+            )}
           </SelectContent>
         </Select>
       </div>
@@ -315,26 +317,29 @@ const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
           </button>
         </div>
         <div className="flex flex-col space-y-2">
-          {stages.map((stage, index) => (
-            <div
-              key={index}
-              className="p-4 bg-gray-50 rounded-lg w-full flex items-center justify-between text-sm relative"
-            >
-              <pre className="overflow-hidden text-ellipsis">
-                <code className="text-gray-600 line-clamp-4">
-                  {JSON.stringify(stage.operator, null, 2)}:{" "}
-                  {JSON.stringify(stage.definition, null, 2)}
-                </code>
-              </pre>
-              <Button
-                variant="ghost"
-                onClick={() => toggleQueryBuilder(true)}
-                className="absolute top-4 right-4 hover:bg-gray-300"
+          {stages.map((stage, index) => {
+            console.log(stage);
+            return (
+              <div
+                key={index}
+                className="p-4 bg-gray-50 rounded-lg w-full flex items-center justify-between text-sm relative"
               >
-                <Pencil size={12} className="text-gray-700" />
-              </Button>
-            </div>
-          ))}
+                <pre className="overflow-hidden text-ellipsis">
+                  <code className="text-gray-600 line-clamp-4">
+                    {JSON.stringify(stage.operator, null, 2)}:{" "}
+                    {JSON.stringify(stage.definition, null, 2)}
+                  </code>
+                </pre>
+                <Button
+                  variant="ghost"
+                  onClick={() => toggleQueryBuilder(true)}
+                  className="absolute top-4 right-4 hover:bg-gray-300"
+                >
+                  <Pencil size={12} className="text-gray-700" />
+                </Button>
+              </div>
+            );
+          })}
         </div>
       </div>
 

@@ -29,7 +29,7 @@ export interface DataCard {
   storageKey: string; // has form  "DASHBOARD_CARDS_{ORG_ID}_{LOC_ID}", e.g. "DASHBOARD_CARDS_85a3a4fc-f195-4d88-9ccd-26dc10f7755b_yiuf04fb9s"
   aggregationStages: any[];
   visualizationType: string;
-  dateRange?: DateRange; // Add dateRange to DataCard interface
+  dateRange?: DateRange;
 }
 export const constructMqlQueryStagesForDataVisualizationCard = (
   orgId: string,
@@ -104,8 +104,14 @@ const DataVisualizationCard: React.FC<{
         card.dataSource,
         card.visualizationType
       );
+
+      // Transform stages into proper aggregation pipeline form
+      const aggregationPipeline = mqlStages.map((stage) => ({
+        [stage.operator]: stage.definition,
+      }));
+
       if (orgId) {
-        fetchTabularData(orgId, mqlStages).then(() => {
+        fetchTabularData(orgId, aggregationPipeline).then(() => {
           console.log("Data fetched successfully!");
         });
       }
@@ -117,8 +123,8 @@ const DataVisualizationCard: React.FC<{
     card.dataSource,
     card.visualizationType,
     fetchTabularData,
-    date, // Add date to dependency array
-    userIsEditingCard, // Add userIsEditingCard to dependency array
+    date,
+    userIsEditingCard,
   ]);
 
   const handleDateChange = (newDate: DateRange | undefined) => {
