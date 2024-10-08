@@ -6,7 +6,8 @@ import { Aggregator } from "mingo";
 export const applyAggregationPipeline = async (
   stages: AggregationStage[],
   organizationId: string,
-  fetchTabularData: (orgId: string, pipeline: any[]) => Promise<any>
+  fetchTabularData: (orgId: string, pipeline: any[]) => Promise<any>,
+  limitResults = false
 ): Promise<any[][]> => {
   const results: any[][] = [];
 
@@ -22,12 +23,14 @@ export const applyAggregationPipeline = async (
     const initialStage = stages[0];
     console.log("Initial stage:", initialStage);
 
-    const aggPipelineFirstStage = [
+    const aggPipelineFirstStage: Array<{ [key: string]: any }> = [
       {
         [initialStage.operator]: initialStage.definition,
       },
     ];
-    console.log("Initial pipeline:", aggPipelineFirstStage);
+    if (limitResults) {
+      aggPipelineFirstStage.push({ $limit: 3 });
+    }
 
     const initialData = await fetchTabularData(
       organizationId,

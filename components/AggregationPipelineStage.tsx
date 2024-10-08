@@ -61,7 +61,7 @@ const AggregationPipelineStage: React.FC<AggregationPipelineStageProps> = ({
     }
   };
 
-  const handleDefinitionChange = (e: React.FormEvent<HTMLDivElement>) => {
+  const handleDefinitionChange = (e: React.FormEvent<HTMLPreElement>) => {
     if (!locked) {
       const content = e.currentTarget.textContent || "";
       updateStage(index, { ...stage, definition: content });
@@ -103,11 +103,13 @@ const AggregationPipelineStage: React.FC<AggregationPipelineStageProps> = ({
               locked ? "cursor-not-allowed" : ""
             }`}
             style={{ width: "100%", maxHeight: "200px", overflowY: "auto" }}
+            onInput={(e: React.FormEvent<HTMLPreElement>) =>
+              handleDefinitionChange(e)
+            }
           >
             <code
               id={`definition-${index}`}
               className="break-words whitespace-pre-wrap"
-              onInput={handleDefinitionChange}
             >
               {JSON.stringify(body, null, 2)}
             </code>
@@ -116,9 +118,9 @@ const AggregationPipelineStage: React.FC<AggregationPipelineStageProps> = ({
       </div>
 
       {/* Right Side: Intermediate Data */}
-      <div className="w-1/2">
+      <div className="w-1/2 max-h-full">
         <Label className="text-sm">Result</Label>
-        <div className="mt-1 p-2 bg-gray-100 rounded h-40 overflow-auto text-xs">
+        <div className="mt-1 p-2 bg-gray-100 rounded h-60 overflow-y-scroll no-scrollbar text-xs">
           {intermediateResult ? (
             <pre>{JSON.stringify(intermediateResult, null, 2)}</pre>
           ) : (

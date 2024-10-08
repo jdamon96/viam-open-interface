@@ -42,7 +42,8 @@ const QueryBuilder: React.FC<QueryBuilderProps> = ({
       const results = await applyAggregationPipeline(
         stages,
         currentlySelectedOrganization?.id!,
-        fetchTabularData
+        fetchTabularData,
+        true // Limit results to 3 records
       );
       setIntermediateResults(results);
     } catch (error) {
