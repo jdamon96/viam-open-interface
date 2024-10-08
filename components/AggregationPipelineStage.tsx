@@ -77,7 +77,7 @@ const AggregationPipelineStage: React.FC<AggregationPipelineStageProps> = ({
       {/* Left Side: Stage Operator and Definition */}
       <div className="flex-1">
         <Label className="text-sm">Aggregation Pipeline Stage</Label>
-        <div className="flex space-x-2 items-center mb-2">
+        <div className="text-xs flex space-x-2 items-center mb-2">
           <Select
             value={operator}
             onValueChange={handleOperatorChange}
@@ -99,7 +99,7 @@ const AggregationPipelineStage: React.FC<AggregationPipelineStageProps> = ({
         <div className="w-full">
           <pre
             contentEditable={!locked}
-            className={`w-full bg-gray-100 p-4 rounded-sm text-sm break-words whitespace-pre-wrap ${
+            className={`w-full bg-gray-100 p-4 rounded-sm text-xs break-words whitespace-pre-wrap ${
               locked ? "cursor-not-allowed" : ""
             }`}
             style={{ width: "100%", maxHeight: "200px", overflowY: "auto" }}

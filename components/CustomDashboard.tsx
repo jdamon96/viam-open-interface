@@ -180,7 +180,7 @@ export default function CustomDashboard() {
           setUserIsEditingCard(false);
         }}
       >
-        <DialogContent className={isQueryBuilder ? "w-[1200px]" : "w-[800px]"}>
+        <DialogContent className="w-11/12">
           {!isQueryBuilder && (
             <DialogTitle className="font-normal">
               Configure Data Visualization Card

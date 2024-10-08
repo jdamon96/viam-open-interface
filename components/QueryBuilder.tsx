@@ -80,14 +80,14 @@ const QueryBuilder: React.FC<QueryBuilderProps> = ({
     <div className="p-4">
       <div className="flex items-center justify-between py-2">
         <h2 className="text-lg">Query Builder</h2>
-        <Button
+        {/* <Button
           variant={"secondary"}
           className="bg-blue-100 text-blue-800"
           onClick={applyPipeline} // Apply pipeline on button click
         >
           <RefreshCcw size={16} className="mr-2" />
           Test Query
-        </Button>
+        </Button> */}
       </div>
       <div className="space-y-4">
         {stages.map((stage, index) => (
