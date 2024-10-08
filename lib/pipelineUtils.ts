@@ -22,14 +22,17 @@ export const applyAggregationPipeline = async (
     const initialStage = stages[0];
     console.log("Initial stage:", initialStage);
 
-    const initialPipeline = [
+    const aggPipelineFirstStage = [
       {
-        [initialStage.operator]: JSON.parse(initialStage.definition),
+        [initialStage.operator]: initialStage.definition,
       },
     ];
-    console.log("Initial pipeline:", initialPipeline);
+    console.log("Initial pipeline:", aggPipelineFirstStage);
 
-    const initialData = await fetchTabularData(organizationId, initialPipeline);
+    const initialData = await fetchTabularData(
+      organizationId,
+      aggPipelineFirstStage
+    );
     if (!initialData) {
       console.error("Failed to fetch initial data");
       return results;
