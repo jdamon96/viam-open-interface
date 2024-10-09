@@ -1,4 +1,18 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { DateRange } from "react-day-picker";
+
+export interface DataCard {
+  id: string;
+  orgId: string;
+  locId: string;
+  title: string;
+  robotId: string;
+  dataSource: string;
+  aggregationStages: any[];
+  visualizationType: string;
+  dateRange?: DateRange;
+}
 
 export interface Organization {
   id: string;
@@ -44,6 +58,8 @@ interface AppState {
   setApiKey: (apiKey: string) => void;
   apiKeyId: string;
   setApiKeyId: (apiKeyId: string) => void;
+  cards: DataCard[];
+  setCards: (cards: DataCard[]) => void;
 }
 
 interface ViamConfig {
@@ -51,26 +67,36 @@ interface ViamConfig {
   id: string;
 }
 
-const useAppStore = create<AppState>((set) => ({
-  availableOrganizations: [],
-  setAvailableOrganizations: (organizations) =>
-    set({ availableOrganizations: organizations }),
-  availableLocations: [],
-  setAvailableLocations: (locations) => set({ availableLocations: locations }),
-  currentlySelectedOrganization: null,
-  setCurrentlySelectedOrganization: (organization) =>
-    set({ currentlySelectedOrganization: organization }),
-  currentlySelectedLocation: null,
-  setCurrentlySelectedLocation: (location) =>
-    set({ currentlySelectedLocation: location }),
-  locationMachines: [],
-  setLocationMachines: (machines) => set({ locationMachines: machines }),
-  config: null,
-  setConfig: (config) => set({ config }),
-  apiKey: "",
-  setApiKey: (apiKey) => set({ apiKey }),
-  apiKeyId: "",
-  setApiKeyId: (apiKeyId) => set({ apiKeyId }),
-}));
+const useAppStore = create(
+  persist<AppState>(
+    (set) => ({
+      availableOrganizations: [],
+      setAvailableOrganizations: (organizations) =>
+        set({ availableOrganizations: organizations }),
+      availableLocations: [],
+      setAvailableLocations: (locations) =>
+        set({ availableLocations: locations }),
+      currentlySelectedOrganization: null,
+      setCurrentlySelectedOrganization: (organization) =>
+        set({ currentlySelectedOrganization: organization }),
+      currentlySelectedLocation: null,
+      setCurrentlySelectedLocation: (location) =>
+        set({ currentlySelectedLocation: location }),
+      locationMachines: [],
+      setLocationMachines: (machines) => set({ locationMachines: machines }),
+      config: null,
+      setConfig: (config) => set({ config }),
+      apiKey: "",
+      setApiKey: (apiKey) => set({ apiKey }),
+      apiKeyId: "",
+      setApiKeyId: (apiKeyId) => set({ apiKeyId }),
+      cards: [],
+      setCards: (cards) => set({ cards }),
+    }),
+    {
+      name: "custom-viam-dashboards-app-storage", // unique name
+    }
+  )
+);
 
 export default useAppStore;

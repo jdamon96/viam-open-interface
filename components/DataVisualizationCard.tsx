@@ -20,17 +20,8 @@ import { DateRangePicker } from "./ui/date-range-picker";
 import { DateRange } from "react-day-picker";
 import { addDays } from "date-fns";
 import { AggregationStage } from "@/types/AggregationStage";
+import { DataCard } from "@/store/zustand";
 
-export interface DataCard {
-  id: string;
-  title: string;
-  robotId: string;
-  dataSource: string;
-  storageKey: string; // has form  "DASHBOARD_CARDS_{ORG_ID}_{LOC_ID}", e.g. "DASHBOARD_CARDS_85a3a4fc-f195-4d88-9ccd-26dc10f7755b_yiuf04fb9s"
-  aggregationStages: any[];
-  visualizationType: string;
-  dateRange?: DateRange;
-}
 export const constructMqlQueryStagesForDataVisualizationCard = (
   orgId: string,
   locId: string,
@@ -40,10 +31,8 @@ export const constructMqlQueryStagesForDataVisualizationCard = (
   visualizationType?: string,
   queryBuilder: boolean = false // Add queryBuilder argument with default value false
 ): AggregationStage[] => {
-  const startTime = date?.from
-    ? date.from.toISOString()
-    : new Date(0).toISOString();
-  const endTime = date?.to ? date.to.toISOString() : new Date().toISOString();
+  const startTime = date?.from ? date.from : new Date(0).toISOString();
+  const endTime = date?.to ? date.to : new Date().toISOString();
 
   const matchStage: any = {
     organization_id: orgId, // "5e3a2211-d311-4685-b595-e53b894c3719",

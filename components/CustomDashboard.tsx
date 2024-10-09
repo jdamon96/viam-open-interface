@@ -7,16 +7,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import useAppStore from "@/store/zustand";
+import useAppStore, { DataCard } from "@/store/zustand";
 import useListViamRobots from "@/hooks/useListViamRobots";
-import { DataCard } from "./DataVisualizationCard";
 import DataVisualizationCardConfigurationForm from "./DataVisualizationCardConfigurationForm";
 import ApiConfigForm from "@/components/ApiConfigForm";
 import Header from "@/components/Header";
 import CardsList from "@/components/CardsList";
-import useDashboardCards from "@/hooks/useDashboardCards";
-import useApiConfig from "@/hooks/useApiConfig";
-import useLocalStorage from "@/hooks/useLocalStorage";
 
 export const LOCALSTORAGE_API_KEY = "API_KEY";
 const LOCALSTORAGE_CARDS_PREFIX = "DASHBOARD_CARDS_";
@@ -26,38 +22,15 @@ export default function CustomDashboard() {
     config,
     setConfig,
     apiKey,
-    apiKeyId,
     setApiKey,
+    apiKeyId,
     setApiKeyId,
     locationMachines,
     currentlySelectedLocation,
     currentlySelectedOrganization,
+    cards,
+    setCards,
   } = useAppStore();
-
-  const { config: apiConfig, setConfig: setApiConfig } = useApiConfig();
-  const storageKey = `${LOCALSTORAGE_CARDS_PREFIX}${
-    currentlySelectedOrganization?.id || "unknown"
-  }_${currentlySelectedLocation?.id || "unknown"}`;
-  const [cards, setCards] = useState<DataCard[]>(() => {
-    if (typeof window === "undefined") return [];
-    try {
-      const item = window.localStorage.getItem(storageKey);
-      return item ? JSON.parse(item) : [];
-    } catch (error) {
-      console.error(`Error reading localStorage key "${storageKey}":`, error);
-      return [];
-    }
-  });
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      const item = window.localStorage.getItem(storageKey);
-      setCards(item ? JSON.parse(item) : []);
-    } catch (error) {
-      console.error(`Error reading localStorage key "${storageKey}":`, error);
-    }
-  }, [storageKey]);
 
   const [editingCard, setEditingCard] = useState<DataCard | null>(null);
   const [userIsEditingCard, setUserIsEditingCard] = useState(false);
@@ -73,12 +46,6 @@ export default function CustomDashboard() {
     fetchRobotsAndSetInAppStore,
   ]);
 
-  useEffect(() => {
-    if (apiConfig) {
-      setConfig(apiConfig);
-    }
-  }, [apiConfig, setConfig]);
-
   const handleAddCard = useCallback(() => {
     if (!currentlySelectedOrganization?.id || !currentlySelectedLocation?.id) {
       console.error("Organization or Location ID is missing");
@@ -86,11 +53,12 @@ export default function CustomDashboard() {
     }
     const newCard: DataCard = {
       id: `card-${Date.now()}`,
+      orgId: currentlySelectedOrganization.id,
+      locId: currentlySelectedLocation.id,
       title: `New Card ${cards.length + 1}`,
       dataSource: "",
       robotId: "",
       visualizationType: "",
-      storageKey,
       dateRange: {
         from: new Date(new Date().setDate(new Date().getDate() - 3)),
         to: new Date(),
@@ -138,10 +106,10 @@ export default function CustomDashboard() {
       e.preventDefault();
       const newConfig = { key: apiKey, id: apiKeyId };
       setConfig(newConfig);
-      setApiConfig(newConfig);
     },
-    [apiKey, apiKeyId, setConfig, setApiConfig]
+    [apiKey, apiKeyId, setConfig]
   );
+
   const [isQueryBuilder, setIsQueryBuilder] = useState(false);
 
   if (!config) {

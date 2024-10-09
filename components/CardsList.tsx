@@ -1,13 +1,7 @@
 // components/CardsList.tsx
-import {
-  Droppable,
-  Draggable,
-  DropResult,
-  DragDropContext,
-} from "react-beautiful-dnd";
 import DataVisualizationCard from "./DataVisualizationCard";
-import { DataCard } from "./DataVisualizationCard";
 import { Button } from "@/components/ui/button";
+import { DataCard } from "@/store/zustand";
 import { Plus } from "lucide-react";
 
 interface CardsListProps {
@@ -17,15 +11,6 @@ interface CardsListProps {
   onDeleteCard: (id: string) => void;
   userIsEditingCard: boolean;
 }
-
-// Utility function to safely extract orgId and locId
-const parseStorageKey = (
-  storageKey: string
-): { orgId: string; locId: string } | null => {
-  const parts = storageKey.split("_");
-  if (parts.length < 4) return null;
-  return { orgId: parts[2], locId: parts[3] };
-};
 
 const CardsList: React.FC<CardsListProps> = ({
   cards,
@@ -44,18 +29,12 @@ const CardsList: React.FC<CardsListProps> = ({
       </div>
     ) : (
       cards.map((card, index) => {
-        const parsedKey = parseStorageKey(card.storageKey);
-        if (!parsedKey) {
-          console.error(`Invalid storage key format: ${card.storageKey}`);
-          return null;
-        }
-        const { orgId, locId } = parsedKey;
         return (
           <DataVisualizationCard
             key={index}
             card={card}
-            orgId={orgId}
-            locId={locId}
+            orgId={card.orgId}
+            locId={card.locId}
             onEdit={() => onEditCard(card)}
             onDelete={() => onDeleteCard(card.id)}
             onSave={(updatedCard) => {
