@@ -4,7 +4,8 @@ import {
   ViamClientOptions,
   createViamClient,
 } from "@viamrobotics/sdk";
-import { LOCALSTORAGE_API_KEY } from "./CustomDashboard";
+// Import the Zustand store
+import useAppStore from "../store/zustand";
 
 // Create a context for the ViamClient, the triggerClientConnection function, and the isConnectingClient state
 export const ViamClientContext = createContext<{
@@ -27,21 +28,22 @@ export const ViamClientProvider = ({
   const [client, setClient] = useState<ViamClient>();
   const [connectionError, setConnectionError] = useState<string>("");
 
+  const config = useAppStore((state) => state.config);
+
   const triggerClientConnection = async () => {
     const connectClient = async () => {
       console.log(
-        "Attempting to retrieve API key configuration from localStorage..."
+        "Attempting to retrieve API key configuration from Zustand store..."
       );
-      const storedConfig = localStorage.getItem(LOCALSTORAGE_API_KEY);
-      if (!storedConfig) {
-        const errorMsg = "API key configuration not found in localStorage";
+      if (!config) {
+        const errorMsg = "API key configuration not found in Zustand store";
         console.error(errorMsg);
         setConnectionError(errorMsg);
         return;
       }
 
       console.log("API key configuration found, parsing...");
-      const { key: apiKeySecret, id: apiKeyId } = JSON.parse(storedConfig);
+      const { key: apiKeySecret, id: apiKeyId } = config;
 
       const opts: ViamClientOptions = {
         credential: {

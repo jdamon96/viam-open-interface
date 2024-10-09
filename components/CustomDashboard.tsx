@@ -14,9 +14,6 @@ import ApiConfigForm from "@/components/ApiConfigForm";
 import Header from "@/components/Header";
 import CardsList from "@/components/CardsList";
 
-export const LOCALSTORAGE_API_KEY = "API_KEY";
-const LOCALSTORAGE_CARDS_PREFIX = "DASHBOARD_CARDS_";
-
 export default function CustomDashboard() {
   const {
     config,

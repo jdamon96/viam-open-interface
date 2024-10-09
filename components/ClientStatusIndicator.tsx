@@ -2,7 +2,6 @@
 import React, { FC, useContext, useEffect, useState } from "react";
 import { ViamClientContext } from "./ViamClientProvider";
 import useAppStore from "@/store/zustand";
-import { LOCALSTORAGE_API_KEY } from "./CustomDashboard";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,11 +33,19 @@ const ClientStatusIndicator: FC<ClientStatusIndicatorProps> = (props) => {
   }, []);
 
   const handleResetConfig = () => {
-    localStorage.removeItem(LOCALSTORAGE_API_KEY);
+    // Remove the API key from the Zustand store
     setConfig(null);
     setApiKey("");
     setApiKeyId("");
   };
+
+  useEffect(() => {
+    // Example of reading from the Zustand store
+    const storedApiKey = useAppStore.getState().apiKey;
+    if (!storedApiKey) {
+      triggerClientConnectionHandler();
+    }
+  }, []);
 
   return (
     <DropdownMenu>
