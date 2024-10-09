@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "./ui/select";
 import { Button } from "./ui/button";
-import { RefreshCcw, Trash, LockIcon } from "lucide-react";
+import { RefreshCcw, Trash, LockIcon, Plus } from "lucide-react";
 import useAppStore from "@/store/zustand";
 import useViamGetTabularDataByMQL from "@/hooks/useViamGetTabularDataByMQL";
 import AggregationPipelineStage from "./AggregationPipelineStage";
@@ -101,15 +101,15 @@ const QueryBuilder: React.FC<QueryBuilderProps> = ({
             locked={index === 0} // Lock first stage
           />
         ))}
-
-        <Button onClick={addStage} variant="secondary">
-          Add Stage
-        </Button>
       </div>
-
-      <div className="mt-6 flex justify-end space-x-4">
-        <Button onClick={onClose}>Back</Button>
-        <Button onClick={applyPipeline}>Refresh</Button>
+      <div className="mt-6 flex items-center justify-between">
+        <Button onClick={addStage} variant="secondary">
+          <Plus size={16} className="mr-2" /> Add Stage
+        </Button>
+        <div className="flex items-center space-x-4">
+          <Button onClick={onClose}>Back</Button>
+          <Button onClick={applyPipeline}>Refresh</Button>
+        </div>
       </div>
       <div className="mt-4 text-xs text-gray-500">
         Note: The data is limited to 3 records for experimentation purposes.

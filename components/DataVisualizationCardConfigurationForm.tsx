@@ -1,10 +1,7 @@
 // components/DataVisualizationCardConfigurationForm.tsx
 
 import React, { useState, useEffect } from "react";
-import {
-  constructMqlQueryStagesForDataVisualizationCard,
-  DataCard,
-} from "./DataVisualizationCard";
+import { constructInitialMatchStageBasedOnCardConfigurationForm } from "./DataVisualizationCard";
 import useGetViamRobotParts from "@/hooks/useGetViamRobotParts";
 import { Robot } from "@/hooks/useListViamRobots";
 import { parseComponentsWithDataManager } from "@/lib/utils";
@@ -18,7 +15,7 @@ import {
 } from "./ui/select";
 import { Button } from "./ui/button";
 import { Braces, Pencil, RefreshCcw, Trash } from "lucide-react";
-import useAppStore from "@/store/zustand";
+import useAppStore, { DataCard } from "@/store/zustand";
 import useViamGetTabularDataByMQL from "@/hooks/useViamGetTabularDataByMQL";
 import QueryBuilder from "./QueryBuilder";
 import { Input } from "./ui/input";
@@ -92,8 +89,7 @@ const DataVisualizationCardConfigurationForm: React.FC<
   }, [robotParts]);
 
   /**
-   * Construct and update stages whenever relevant form fields change.
-   * This ensures that the query builder preview is live-updating.
+   * Construct and update agg pipeline initial $match stage whenever relevant form fields change.
    */
   useEffect(() => {
     if (
@@ -103,16 +99,15 @@ const DataVisualizationCardConfigurationForm: React.FC<
     )
       return;
 
-    const updatedStages = constructMqlQueryStagesForDataVisualizationCard(
-      currentlySelectedOrganization.id,
-      currentlySelectedLocation.id,
-      dataSourceRobotId,
-      card.dateRange,
-      dataSource,
-      visualizationType,
-      true // Pass true for queryBuilder
-    );
-    setStages(updatedStages);
+    const updatedInitMatchStage =
+      constructInitialMatchStageBasedOnCardConfigurationForm(
+        currentlySelectedOrganization.id,
+        currentlySelectedLocation.id,
+        dataSourceRobotId,
+        card.dateRange,
+        dataSource
+      );
+    setStages([updatedInitMatchStage, ...stages.slice(1)]);
   }, [
     dataSource,
     dataSourceRobotId,
@@ -121,8 +116,6 @@ const DataVisualizationCardConfigurationForm: React.FC<
     currentlySelectedOrganization,
     card.dateRange,
   ]);
-
-  // Optionally, if you have other fields that should trigger stage updates, include them here.
 
   // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {

@@ -22,15 +22,13 @@ import { addDays } from "date-fns";
 import { AggregationStage } from "@/types/AggregationStage";
 import { DataCard } from "@/store/zustand";
 
-export const constructMqlQueryStagesForDataVisualizationCard = (
+export const constructInitialMatchStageBasedOnCardConfigurationForm = (
   orgId: string,
   locId: string,
   robotId?: string,
   date?: DateRange,
-  dataSource?: string,
-  visualizationType?: string,
-  queryBuilder: boolean = false // Add queryBuilder argument with default value false
-): AggregationStage[] => {
+  dataSource?: string
+): AggregationStage => {
   const startTime = date?.from ? date.from : new Date(0).toISOString();
   const endTime = date?.to ? date.to : new Date().toISOString();
 
@@ -57,12 +55,10 @@ export const constructMqlQueryStagesForDataVisualizationCard = (
     matchStage.component_name = dataSource;
   }
 
-  return [
-    {
-      operator: "$match",
-      definition: matchStage,
-    },
-  ];
+  return {
+    operator: "$match",
+    definition: matchStage,
+  };
 };
 
 const DataVisualizationCard: React.FC<{
@@ -83,38 +79,39 @@ const DataVisualizationCard: React.FC<{
   const { fetchTabularData, loading, error, data } =
     useViamGetTabularDataByMQL();
 
-  useEffect(() => {
-    if (!userIsEditingCard) {
-      const mqlStages = constructMqlQueryStagesForDataVisualizationCard(
-        orgId,
-        locId,
-        card.robotId,
-        date,
-        card.dataSource,
-        card.visualizationType
-      );
+  // useEffect(() => {
+  //   if (!userIsEditingCard) {
+  //     const initMatchStage =
+  //       constructInitialMatchStageBasedOnCardConfigurationForm(
+  //         orgId,
+  //         locId,
+  //         card.robotId,
+  //         date,
+  //         card.dataSource
+  //       );
 
-      // Transform stages into proper aggregation pipeline form
-      const aggregationPipeline = mqlStages.map((stage) => ({
-        [stage.operator]: stage.definition,
-      }));
+  //     // Transform stages into proper aggregation pipeline form
+  //     const aggregationPipeline = mqlStages.map((stage) => ({
+  //       [stage.operator]: stage.definition,
+  //     }));
 
-      if (orgId) {
-        fetchTabularData(orgId, aggregationPipeline).then(() => {
-          console.log("Data fetched successfully!");
-        });
-      }
-    }
-  }, [
-    orgId,
-    locId,
-    card.robotId,
-    card.dataSource,
-    card.visualizationType,
-    fetchTabularData,
-    date,
-    userIsEditingCard,
-  ]);
+  //     if (orgId) {
+  //       fetchTabularData(orgId, aggregationPipeline).then(() => {
+  //         console.log("Data fetched successfully!");
+  //       });
+  //     }
+  //   }
+  // }, [
+  //   orgId,
+  //   locId,
+  //   card.robotId,
+  //   card.dataSource,
+  //   card.visualizationType,
+  //   card.aggregationStages,
+  //   fetchTabularData,
+  //   date,
+  //   userIsEditingCard,
+  // ]);
 
   const handleDateChange = (newDate: DateRange | undefined) => {
     setDate(newDate as DateRange | undefined);
