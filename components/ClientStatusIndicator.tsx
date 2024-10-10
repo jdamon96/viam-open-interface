@@ -57,25 +57,30 @@ const ClientStatusIndicator: FC<ClientStatusIndicatorProps> = (props) => {
           {connectingToClient ? (
             <span>Loading...</span>
           ) : (
-            <span
-              className={`w-2 h-2 rounded-full ${
-                viamClientContext.client ? "bg-green-500" : "bg-red-500"
-              } mr-2`}
-            ></span>
+            <span className="relative flex h-2 w-2 mr-2">
+              {viamClientContext.client ? (
+                <>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                </>
+              ) : (
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+              )}
+            </span>
           )}
           Viam Client Status
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="p-4 space-y-4">
+      <DropdownMenuContent className="p-4 space-y-2 flex flex-col items-center justify-center mr-4">
         {viamClientContext.client ? (
           <div className="flex items-center space-x-2">
-            <CheckIcon className="text-green-500" />
-            <p className="text-green-500">Client connected.</p>
+            <CheckIcon className="text-green-500 h-4 w-4" />
+            <p className="">Viam client is connected.</p>
           </div>
         ) : (
           <div className="flex items-center space-x-2">
-            <XIcon className="text-red-500" />
-            <p className="text-red-500">No client connected.</p>
+            <XIcon className="text-red-500 h-4 w-4" />
+            <p className="">No client connected.</p>
           </div>
         )}
         <div className="pt-2 flex flex-col space-y-2">

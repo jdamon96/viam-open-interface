@@ -169,7 +169,7 @@ const DataVisualizationCard: React.FC<{
           <CardTitle className="text-lg font-semibold flex-shrink-0">
             {card.title}
           </CardTitle>
-          <div className="flex items-center justify-end w-full">
+          <div className="flex items-center justify-end space-x-2 w-full">
             <DateRangePicker
               date={date}
               setDate={(date) =>
