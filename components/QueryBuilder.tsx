@@ -89,7 +89,7 @@ const QueryBuilder: React.FC<QueryBuilderProps> = ({
           Test Query
         </Button> */}
       </div>
-      <div className="space-y-4">
+      <div className="space-y-4 max-h-[60vh] overflow-y-auto">
         {stages.map((stage, index) => (
           <AggregationPipelineStage
             key={index}

@@ -3,23 +3,41 @@
 import { AggregationStage } from "@/types/AggregationStage";
 import { Aggregator } from "mingo";
 import { useOperators, OperatorType } from "mingo/core";
-
-import { $sum } from "mingo/operators/accumulator";
-useOperators(OperatorType.ACCUMULATOR, { $sum });
+import { $sum, $push } from "mingo/operators/accumulator";
+import {
+  $dateToString,
+  $dateFromString,
+  $substrBytes,
+  $arrayToObject,
+  $ifNull,
+} from "mingo/operators/expression";
 import {
   $group,
   $limit,
   $match,
   $project,
   $sort,
+  $addFields,
 } from "mingo/operators/pipeline";
-
+// import {} from 'mingo/operators/projection';
+// import {} from "mingo/operators/query";
+// import {} from "mingo/operators/update";
+import {} from "mingo/operators/window";
+useOperators(OperatorType.ACCUMULATOR, { $sum, $push });
+useOperators(OperatorType.EXPRESSION, {
+  $dateToString,
+  $dateFromString,
+  $substrBytes,
+  $arrayToObject,
+  $ifNull,
+});
 useOperators(OperatorType.PIPELINE, {
   $match,
   $project,
   $group,
   $sort,
   $limit,
+  $addFields,
 });
 
 export const applyAggregationPipeline = async (

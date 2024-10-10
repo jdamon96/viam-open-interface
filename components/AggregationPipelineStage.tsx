@@ -89,6 +89,7 @@ const AggregationPipelineStage: React.FC<AggregationPipelineStageProps> = ({
               <SelectItem value="$group">$group</SelectItem>
               <SelectItem value="$sort">$sort</SelectItem>
               <SelectItem value="$limit">$limit</SelectItem>
+              <SelectItem value="$addFields">$addFields</SelectItem>
               {/* Add more operators as needed */}
             </SelectContent>
           </Select>
