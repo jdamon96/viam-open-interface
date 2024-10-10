@@ -1,4 +1,6 @@
-import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
 import useViamGetTabularDataByMQL from "@/hooks/useViamGetTabularDataByMQL";
 import {
   DropdownMenu,
@@ -30,6 +32,30 @@ import { AggregationStage } from "@/types/AggregationStage";
 import { DataCard } from "@/store/zustand";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { CopyToClipboard } from "react-copy-to-clipboard";
+
+// Import Recharts components
+import {
+  BarChart,
+  Bar,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+
+// Example Chart Config (Adjust as needed)
+const chartConfig = {
+  desktop: {
+    label: "Desktop",
+    color: "#8884d8",
+  },
+  mobile: {
+    label: "Mobile",
+    color: "#82ca9d",
+  },
+};
 
 export const constructInitialMatchStageBasedOnCardConfigurationForm = (
   orgId: string,
@@ -134,6 +160,7 @@ const DataVisualizationCard: React.FC<{
       setCopyFeedback("");
     }, 2000);
   };
+
   const renderDataPreview = (data: any) => {
     const jsonString = JSON.stringify(data, null, 2);
     const previewLimit = 512; // Limit for preview
@@ -160,6 +187,13 @@ const DataVisualizationCard: React.FC<{
       );
     }
     return <pre>{jsonString}</pre>;
+  };
+
+  // Function to transform data if needed
+  const transformData = () => {
+    // Assuming 'data' is an array of objects with keys corresponding to chartConfig
+    // Adjust this function based on your actual data structure
+    return data;
   };
 
   return (
@@ -228,16 +262,36 @@ const DataVisualizationCard: React.FC<{
           } p-4`}
         >
           {showVisualization ? (
-            <div className="text-center flex flex-col space-y-2 p-8">
-              <ChartColumn className="h-12 w-12 mx-auto mb-4 text-gray-500" />
-              <p className="text-lg font-semibold text-gray-500">
-                Visualization Placeholder
-              </p>
-              <p className="text-sm text-gray-500">
-                This is where the visualization content will be displayed.
-              </p>
-              {JSON.stringify(data, null, 2)}
-            </div>
+            card.visualizationType === "Stacked Bar Chart" && data ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={transformData()}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="category" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  {Object.keys(chartConfig).map((key) => (
+                    <Bar
+                      key={key}
+                      dataKey={key}
+                      stackId="a"
+                      fill={chartConfig[key].color}
+                    />
+                  ))}
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="text-center flex flex-col space-y-2 p-8">
+                <ChartColumn className="h-12 w-12 mx-auto mb-4 text-gray-500" />
+                <p className="text-lg font-semibold text-gray-500">
+                  Visualization Placeholder
+                </p>
+                <p className="text-sm text-gray-500">
+                  This is where the visualization content will be displayed.
+                </p>
+                {JSON.stringify(data, null, 2)}
+              </div>
+            )
           ) : data ? (
             <div className="">{renderDataPreview(data)}</div>
           ) : (

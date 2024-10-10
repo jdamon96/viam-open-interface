@@ -25,6 +25,7 @@ import { AggregationStage } from "@/types/AggregationStage";
 // Mock data for visualization types
 const visualizationTypes = [
   "Bar Chart",
+  "Stacked Bar Chart",
   "Line Chart",
   "Pie Chart",
   "Scatter Plot",
