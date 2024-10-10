@@ -15,7 +15,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "./ui/button";
-import { MoreVertical } from "lucide-react";
+import { ChartColumn, MoreVertical } from "lucide-react";
 import { DateRangePicker } from "./ui/date-range-picker";
 import { DateRange } from "react-day-picker";
 import { addDays } from "date-fns";
@@ -119,13 +119,16 @@ const DataVisualizationCard: React.FC<{
   };
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 max-w-lg">
-        <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
-        <div className="flex items-center space-x-2">
+    <Card className="w-full min-w-[600px] p-6 flex flex-col space-y-6">
+      <CardHeader className="flex flex-row items-center justify-between p-0">
+        <CardTitle className="text-lg font-semibold flex-shrink-0">
+          {card.title}
+        </CardTitle>
+        <div className="flex items-center justify-end w-full">
           <DateRangePicker
             date={date}
             setDate={(date) => handleDateChange(date as DateRange | undefined)}
+            className=""
           />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -141,15 +144,35 @@ const DataVisualizationCard: React.FC<{
           </DropdownMenu>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{card.title}</div>
-        <div className="">{JSON.stringify(data, null, 2)}</div>
+      <CardContent className="border border-gray-200 bg-gray-50 rounded-sm flex items-center justify-center p-4">
+        {data ? (
+          <div className="">{JSON.stringify(data, null, 2)}</div>
+        ) : (
+          <div className="text-center flex flex-col space-y-2 p-8">
+            <ChartColumn className="h-12 w-12 mx-auto mb-4 text-gray-500" />
+            <p className="text-lg font-semibold text-gray-500">
+              No Data Available
+            </p>
+            <p className="text-sm text-gray-500">
+              Finish configuring your card to set up the data visualization.
+            </p>
+          </div>
+        )}
       </CardContent>
-      <CardFooter>
-        <div className="text-xs text-muted-foreground">
-          {card.dataSource} - {card.visualizationType}
-        </div>
-      </CardFooter>
+      {(card.dataSource || card.visualizationType) && (
+        <CardFooter className="p-0">
+          <div className="text-xs text-muted-foreground">
+            <div>
+              <span className="font-semibold">Data source:</span>{" "}
+              {card.dataSource}
+            </div>
+            <div>
+              <span className="font-semibold">Visualization Type:</span>{" "}
+              {card.visualizationType}
+            </div>
+          </div>
+        </CardFooter>
+      )}
     </Card>
   );
 };
