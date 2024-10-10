@@ -136,11 +136,17 @@ const DataVisualizationCard: React.FC<{
   };
   const renderDataPreview = (data: any) => {
     const jsonString = JSON.stringify(data, null, 2);
-    const previewLimit = 256; // Limit for preview
+    const previewLimit = 512; // Limit for preview
     if (jsonString.length > previewLimit) {
+      const truncatedString = jsonString.substring(0, previewLimit);
+      const lastSpaceIndex = truncatedString.lastIndexOf(" ");
+      const displayString =
+        lastSpaceIndex === -1
+          ? truncatedString
+          : truncatedString.substring(0, lastSpaceIndex);
       return (
-        <div>
-          {jsonString.substring(0, previewLimit)}...
+        <div className="text-xs w-full">
+          <pre>{displayString} ...</pre>
           <div>
             <Button
               variant="link"
@@ -153,7 +159,7 @@ const DataVisualizationCard: React.FC<{
         </div>
       );
     }
-    return <div>{jsonString}</div>;
+    return <pre>{jsonString}</pre>;
   };
 
   return (
@@ -216,7 +222,11 @@ const DataVisualizationCard: React.FC<{
             </DropdownMenu>
           </div>
         </CardHeader>
-        <CardContent className="border border-gray-200 bg-gray-50 rounded-sm flex items-center justify-center p-4">
+        <CardContent
+          className={`border border-gray-200 bg-gray-50 rounded-sm flex items-center ${
+            data && !showVisualization ? "justify-start" : "justify-center"
+          } p-4`}
+        >
           {showVisualization ? (
             <div className="text-center flex flex-col space-y-2 p-8">
               <ChartColumn className="h-12 w-12 mx-auto mb-4 text-gray-500" />
