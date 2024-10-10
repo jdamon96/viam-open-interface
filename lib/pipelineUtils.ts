@@ -70,7 +70,7 @@ export const applyAggregationPipeline = async (
       console.log(`Applying stage ${i}:`, stage);
 
       const pipeline = [
-        { [stage.operator]: JSON.parse(stage.definition) },
+        { [stage.operator]: stage.definition },
         { $limit: 3 }, // Add $limit implicitly
       ];
       console.log(`Pipeline for stage ${i}:`, pipeline);

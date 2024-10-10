@@ -236,6 +236,7 @@ const DataVisualizationCard: React.FC<{
               <p className="text-sm text-gray-500">
                 This is where the visualization content will be displayed.
               </p>
+              {JSON.stringify(data, null, 2)}
             </div>
           ) : data ? (
             <div className="">{renderDataPreview(data)}</div>

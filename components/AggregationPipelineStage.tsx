@@ -40,16 +40,6 @@ const AggregationPipelineStage: React.FC<AggregationPipelineStageProps> = ({
   removeStage,
   locked,
 }) => {
-  // Utility function to parse the definition JSON
-  const parseDefinition = (definition: string): Record<string, any> => {
-    try {
-      return JSON.parse(definition);
-    } catch (error) {
-      console.error("Invalid JSON in stage definition:", error);
-      return {};
-    }
-  };
-
   const { operator, body } = {
     operator: stage.operator,
     body: stage.definition,
@@ -64,7 +54,14 @@ const AggregationPipelineStage: React.FC<AggregationPipelineStageProps> = ({
   const handleDefinitionChange = (e: React.FormEvent<HTMLPreElement>) => {
     if (!locked) {
       const content = e.currentTarget.textContent || "";
-      updateStage(index, { ...stage, definition: content });
+      let parsedContent;
+      try {
+        parsedContent = JSON.parse(content);
+      } catch (error) {
+        console.error("Invalid JSON format:", error);
+        return;
+      }
+      updateStage(index, { ...stage, definition: parsedContent });
     }
   };
 
