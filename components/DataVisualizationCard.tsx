@@ -126,6 +126,7 @@ const DataVisualizationCard: React.FC<{
     }
   }, [card.dateRange]);
 
+  // Fetch data when card configuration changes
   useEffect(() => {
     if (!userIsEditingCard) {
       const aggregationPipeline = card.aggregationStages.map((stage) => ({
@@ -152,7 +153,7 @@ const DataVisualizationCard: React.FC<{
 
   const handleDateChange = (newDate: DateRange | undefined) => {
     setDate(newDate);
-    onSave({ ...card, dateRange: newDate }); // Save the updated date range to the store
+    onSave({ ...card, dateRange: newDate });
   };
 
   const handleDialogOpen = () => {
@@ -170,6 +171,7 @@ const DataVisualizationCard: React.FC<{
     }, 2000);
   };
 
+  // Render data preview with a "See full data" button if data is too large
   const renderDataPreview = (data: any) => {
     const jsonString = JSON.stringify(data, null, 2);
     const previewLimit = 512; // Limit for preview

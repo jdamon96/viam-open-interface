@@ -86,7 +86,6 @@ export default function CustomDashboard() {
       setCards(
         cards.map((card) => (card.id === updatedCard.id ? updatedCard : card))
       );
-      // Ensure that saving doesn't trigger the edit dialog
       setEditingCard(null);
       setUserIsEditingCard(false);
     },
@@ -136,7 +135,7 @@ export default function CustomDashboard() {
             setUserIsEditingCard(true);
           }}
           onDeleteCard={handleDeleteCard}
-          onSaveCard={handleSaveCard} // Pass the save handler
+          onSaveCard={handleSaveCard}
           userIsEditingCard={userIsEditingCard}
         />
       </div>
@@ -160,7 +159,7 @@ export default function CustomDashboard() {
               card={editingCard}
               onSave={handleSaveCard}
               locationMachines={locationMachines}
-              onModeChange={setIsQueryBuilder} // Pass the callback
+              onModeChange={setIsQueryBuilder}
             />
           )}
         </DialogContent>

@@ -10,7 +10,7 @@ interface CardsListProps {
   onAddCard: () => void;
   onEditCard: (card: DataCard) => void;
   onDeleteCard: (id: string) => void;
-  onSaveCard: (card: DataCard) => void; // Add onSaveCard prop
+  onSaveCard: (card: DataCard) => void;
   userIsEditingCard: boolean;
 }
 
@@ -19,7 +19,7 @@ const CardsList: React.FC<CardsListProps> = ({
   onAddCard,
   onEditCard,
   onDeleteCard,
-  onSaveCard, // Destructure onSaveCard
+  onSaveCard,
   userIsEditingCard,
 }) => (
   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -33,13 +33,13 @@ const CardsList: React.FC<CardsListProps> = ({
     ) : (
       cards.map((card) => (
         <DataVisualizationCard
-          key={card.id} // Use unique ID as key
+          key={card.id}
           card={card}
           orgId={card.orgId}
           locId={card.locId}
           onEdit={() => onEditCard(card)}
           onDelete={() => onDeleteCard(card.id)}
-          onSave={onSaveCard} // Pass the save handler directly
+          onSave={onSaveCard}
           userIsEditingCard={userIsEditingCard}
         />
       ))

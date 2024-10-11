@@ -118,10 +118,10 @@ const AggregationPipelineStage: React.FC<AggregationPipelineStageProps> = ({
         <div className="h-4">
           <Label className="text-sm">Result</Label>
         </div>
-        <div className="bg-red-100 w-full">
+        <div className="w-full">
           {intermediateResult === undefined ? (
             <div className="flex items-center space-x-4">
-              <Skeleton className="h-[256px] w-[256px]" />
+              <Skeleton className="h-[304px] w-full" />
             </div>
           ) : (
             <JsonCodeEditor
@@ -166,7 +166,7 @@ const AggregationPipelineStage: React.FC<AggregationPipelineStageProps> = ({
                 <Trash size={16} />
               </Button>
             </TooltipTrigger>
-            <TooltipContent className="-ml-8 max-w-[200px] bg-red-50 text-red-500 border-none">
+            <TooltipContent className="-ml-8 max-w-[200px] bg-red-500 text-red-50 border-none">
               <p>Delete Stage</p>
             </TooltipContent>
           </Tooltip>
