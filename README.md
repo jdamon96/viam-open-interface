@@ -1,8 +1,19 @@
-# Custom Viam Dashboards
+# Viam Open Interface
 
 ## Overview
 
-**Custom Viam Dashboards** is a web app built with Next.js and React designed to configure custom visualizons for machines on Viam. It provides functionalities for configuring data sources and visualization.
+An open source interface to your machines and data on Viam. Provide a Viam organization API Key & API Key ID to get started.
+
+## To-Do
+
+- [ ] implement data visualizations
+   - [x] Stacked Bar Chart (done 10/11/24)
+   - [ ] Line Chart
+   - [ ] Table
+- [ ] surface in UX the chart data format expected for each chart visualization type (chart lib: https://ui.shadcn.com/charts)
+- [ ] Add camera feeds
+- [ ] (eventually): add prompt -> aggregation pipeline
+
 
 ## Getting Started
 
@@ -16,8 +27,8 @@
 1. **Clone the Repository**
 
    ```bash
-   git clone https://github.com/your-username/custom-viam-dashboards.git
-   cd custom-viam-dashboards
+   git clone https://github.com/jdamon96/viam-open-interface.git
+   cd viam-open-interface
    ```
 
 2. **Install Dependencies**
@@ -28,11 +39,6 @@
    npm install
    ```
 
-   Or using yarn:
-
-   ```bash
-   yarn install
-   ```
 
 ### Running the Development Server
 
@@ -42,18 +48,7 @@ Start the development server:
 npm run dev
 ```
 
-Or with yarn:
-
-```bash
-yarn dev
-```
-
 Open [http://localhost:3000](http://localhost:3000) in your browser to view the dashboard.
-
-## To-Do
-
-- [ ] implement data transforms associated w/ a configured visualization
-- [ ] implement visualizations
 
 Feel free to contribute or reach out if you have any questions.
 
@@ -62,7 +57,3 @@ Feel free to contribute or reach out if you have any questions.
 ## License
 
 MIT
-
-## Contact
-
-[Your Name](mailto:your.email@example.com) | [GitHub](https://github.com/your-username)
