@@ -1,6 +1,7 @@
+// components/DataVisualizationCard.tsx
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import useViamGetTabularDataByMQL from "@/hooks/useViamGetTabularDataByMQL";
 import {
   DropdownMenu,
@@ -11,7 +12,6 @@ import {
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -45,17 +45,19 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-// Example Chart Config (Adjust as needed)
-const chartConfig = {
-  desktop: {
-    label: "Desktop",
-    color: "#8884d8",
-  },
-  mobile: {
-    label: "Mobile",
-    color: "#82ca9d",
-  },
-};
+// Predefined color palette for data series
+const colorPalette = [
+  "#8884d8",
+  "#82ca9d",
+  "#ffc658",
+  "#ff8042",
+  "#8dd1e1",
+  "#a4de6c",
+  "#d0ed57",
+  "#ffc0cb",
+  "#ffbb28",
+  "#ff7300",
+];
 
 export const constructInitialMatchStageBasedOnCardConfigurationForm = (
   orgId: string,
@@ -105,7 +107,7 @@ const DataVisualizationCard: React.FC<{
   onSave: (card: DataCard) => void;
   userIsEditingCard: boolean;
 }> = ({ card, orgId, locId, onEdit, onDelete, onSave, userIsEditingCard }) => {
-  const [date, setDate] = React.useState<DateRange | undefined>(
+  const [date, setDate] = useState<DateRange | undefined>(
     card.dateRange ?? {
       from: addDays(new Date(), -7),
       to: new Date(),
@@ -116,6 +118,13 @@ const DataVisualizationCard: React.FC<{
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState("");
   const [showVisualization, setShowVisualization] = useState(true);
+
+  // Synchronize local date state with card.dateRange prop
+  useEffect(() => {
+    if (card.dateRange) {
+      setDate(card.dateRange);
+    }
+  }, [card.dateRange]);
 
   useEffect(() => {
     if (!userIsEditingCard) {
@@ -142,8 +151,8 @@ const DataVisualizationCard: React.FC<{
   ]);
 
   const handleDateChange = (newDate: DateRange | undefined) => {
-    setDate(newDate as DateRange | undefined);
-    onSave({ ...card, dateRange: newDate });
+    setDate(newDate);
+    onSave({ ...card, dateRange: newDate }); // Save the updated date range to the store
   };
 
   const handleDialogOpen = () => {
@@ -189,18 +198,46 @@ const DataVisualizationCard: React.FC<{
     return <pre>{jsonString}</pre>;
   };
 
-  // Function to transform data if needed
-  const transformData = () => {
-    // Assuming 'data' is an array of objects with keys corresponding to chartConfig
-    // Adjust this function based on your actual data structure
-    return data;
-  };
+  // Dynamically generate chartConfig based on data keys
+  const dynamicChartConfig = useMemo(() => {
+    if (!data || data.length === 0) return {};
+
+    // Identify the x-axis key - currently assuming the first string key as x-axis, may need to make this configurable
+    const sample = data[0];
+    const possibleXAxisKeys = Object.keys(sample).filter((key) => {
+      const value = sample[key];
+      return (
+        typeof value === "string" ||
+        value instanceof String ||
+        value instanceof Date
+      );
+    });
+
+    // I may want to make this configurable in the future. For now, taking the first string key as x-axis
+    const xAxisKey = possibleXAxisKeys[0] || "category";
+
+    // Extracting the rest of the keys as data series
+    const dataSeriesKeys = Object.keys(sample).filter(
+      (key) => key !== xAxisKey
+    );
+
+    // Assigning colors from the palette
+    const config: { [key: string]: { label: string; color: string } } = {};
+    dataSeriesKeys.forEach((key, index) => {
+      config[key] = {
+        label: key.charAt(0).toUpperCase() + key.slice(1),
+        color: colorPalette[index % colorPalette.length],
+      };
+    });
+
+    return { xAxisKey, dataSeriesKeys, config };
+  }, [data]);
 
   return (
     <>
-      <Card className="w-full min-w-[600px] p-6 flex flex-col space-y-6">
+      <Card className="w-full min-w-[768px] p-6 flex flex-col space-y-6">
         <CardHeader className="flex flex-row items-center justify-between p-0">
-          <CardTitle className="text-lg font-semibold flex-shrink-0">
+          <CardTitle className="text-lg font-normal flex-shrink-0">
             {card.title}
           </CardTitle>
           <div className="flex items-center justify-end space-x-2 w-full">
@@ -263,23 +300,36 @@ const DataVisualizationCard: React.FC<{
         >
           {showVisualization ? (
             card.visualizationType === "Stacked Bar Chart" && data ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={transformData()}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="category" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  {Object.keys(chartConfig).map((key) => (
-                    <Bar
-                      key={key}
-                      dataKey={key}
-                      stackId="a"
-                      fill={chartConfig[key].color}
-                    />
-                  ))}
-                </BarChart>
-              </ResponsiveContainer>
+              dynamicChartConfig.xAxisKey ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={data}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey={dynamicChartConfig.xAxisKey} />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    {dynamicChartConfig.dataSeriesKeys.map((key) => (
+                      <Bar
+                        key={key}
+                        dataKey={key}
+                        stackId="a"
+                        fill={dynamicChartConfig.config[key].color}
+                      />
+                    ))}
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="text-center flex flex-col space-y-2 p-8">
+                  <ChartColumn className="h-12 w-12 mx-auto mb-4 text-gray-500" />
+                  <p className="text-lg font-semibold text-gray-500">
+                    Visualization Placeholder
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    This is where the visualization content will be displayed.
+                  </p>
+                  {JSON.stringify(data, null, 2)}
+                </div>
+              )
             ) : (
               <div className="text-center flex flex-col space-y-2 p-8">
                 <ChartColumn className="h-12 w-12 mx-auto mb-4 text-gray-500" />

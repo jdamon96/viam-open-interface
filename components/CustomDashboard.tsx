@@ -13,6 +13,7 @@ import DataVisualizationCardConfigurationForm from "./DataVisualizationCardConfi
 import ApiConfigForm from "@/components/ApiConfigForm";
 import Header from "@/components/Header";
 import CardsList from "@/components/CardsList";
+import { addDays } from "date-fns";
 
 export default function CustomDashboard() {
   const {
@@ -57,7 +58,7 @@ export default function CustomDashboard() {
       robotId: "",
       visualizationType: "",
       dateRange: {
-        from: new Date(new Date().setDate(new Date().getDate() - 3)),
+        from: addDays(new Date(), -3),
         to: new Date(),
       },
       aggregationStages: [
@@ -85,6 +86,7 @@ export default function CustomDashboard() {
       setCards(
         cards.map((card) => (card.id === updatedCard.id ? updatedCard : card))
       );
+      // Ensure that saving doesn't trigger the edit dialog
       setEditingCard(null);
       setUserIsEditingCard(false);
     },
@@ -134,6 +136,7 @@ export default function CustomDashboard() {
             setUserIsEditingCard(true);
           }}
           onDeleteCard={handleDeleteCard}
+          onSaveCard={handleSaveCard} // Pass the save handler
           userIsEditingCard={userIsEditingCard}
         />
       </div>

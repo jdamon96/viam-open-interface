@@ -1,4 +1,5 @@
 // components/CardsList.tsx
+import React from "react";
 import DataVisualizationCard from "./DataVisualizationCard";
 import { Button } from "@/components/ui/button";
 import { DataCard } from "@/store/zustand";
@@ -9,6 +10,7 @@ interface CardsListProps {
   onAddCard: () => void;
   onEditCard: (card: DataCard) => void;
   onDeleteCard: (id: string) => void;
+  onSaveCard: (card: DataCard) => void; // Add onSaveCard prop
   userIsEditingCard: boolean;
 }
 
@@ -17,6 +19,7 @@ const CardsList: React.FC<CardsListProps> = ({
   onAddCard,
   onEditCard,
   onDeleteCard,
+  onSaveCard, // Destructure onSaveCard
   userIsEditingCard,
 }) => (
   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -28,22 +31,18 @@ const CardsList: React.FC<CardsListProps> = ({
         </Button>
       </div>
     ) : (
-      cards.map((card, index) => {
-        return (
-          <DataVisualizationCard
-            key={index}
-            card={card}
-            orgId={card.orgId}
-            locId={card.locId}
-            onEdit={() => onEditCard(card)}
-            onDelete={() => onDeleteCard(card.id)}
-            onSave={(updatedCard) => {
-              onEditCard(updatedCard);
-            }}
-            userIsEditingCard={userIsEditingCard}
-          />
-        );
-      })
+      cards.map((card) => (
+        <DataVisualizationCard
+          key={card.id} // Use unique ID as key
+          card={card}
+          orgId={card.orgId}
+          locId={card.locId}
+          onEdit={() => onEditCard(card)}
+          onDelete={() => onDeleteCard(card.id)}
+          onSave={onSaveCard} // Pass the save handler directly
+          userIsEditingCard={userIsEditingCard}
+        />
+      ))
     )}
   </div>
 );
