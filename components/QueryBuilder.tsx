@@ -74,15 +74,16 @@ const QueryBuilder: React.FC<QueryBuilderProps> = ({
   };
 
   return (
-    <div className="p-4 flex flex-col space-y-4">
+    <div className="p-4 flex flex-col space-y-4 min-w-[410px] overflow-auto">
       <div className="flex items-center justify-between">
         <div className="flex flex-col items-start justify-center py-2">
           <h2 className="text-lg">Query Builder</h2>
-          <div className="mt-1 text-xs text-gray-500 max-w-2xl">
+          <div className="mt-1 text-xs text-gray-500 max-w-[700px]">
             Note: For query building, the data is limited to 3 records to help
-            you iterate and get the data shape right. The data visualization
-            card will request the full configured pipeline without any limit
-            unless explicitly added.
+            you iterate and get the data shape right. Outside of the query
+            builder, the data visualization card will process the full
+            aggregation pipeline without any limit unless explicitly added to
+            the pipeline.
           </div>
         </div>
         <Link

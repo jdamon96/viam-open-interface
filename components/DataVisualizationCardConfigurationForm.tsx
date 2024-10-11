@@ -195,7 +195,10 @@ const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
   handleSubmit,
 }) => {
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form
+      onSubmit={handleSubmit}
+      className="p-4 flex flex-col space-y-6 min-w-[410px] overflow-auto"
+    >
       {/* Card Title */}
       <div className="space-y-2">
         <Label htmlFor="title">Card Title</Label>
