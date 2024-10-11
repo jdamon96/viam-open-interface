@@ -76,3 +76,11 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+.code-editor {
+  outline: none;
+}
+
+.code-editor:focus {
+  border-color: #90caf9;
+}

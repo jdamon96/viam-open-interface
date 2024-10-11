@@ -77,8 +77,8 @@ const QueryBuilder: React.FC<QueryBuilderProps> = ({
   };
 
   return (
-    <div className="p-4">
-      <div className="flex items-center justify-between py-2">
+    <div className="p-4 flex flex-col space-y-4">
+      <div className="flex flex-col items-start justify-center py-2">
         <h2 className="text-lg">Query Builder</h2>
         {/* <Button
           variant={"secondary"}
@@ -88,8 +88,14 @@ const QueryBuilder: React.FC<QueryBuilderProps> = ({
           <RefreshCcw size={16} className="mr-2" />
           Test Query
         </Button> */}
+        <div className="mt-1 text-xs text-gray-500">
+          Note: For query building, the data is limited to 3 records to help you
+          iterate and get the data shape right. The data visualization card will
+          request the full configured pipeline without any limit unless
+          explicitly added.
+        </div>
       </div>
-      <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+      <div className="space-y-4 max-h-[60vh] overflow-y-auto bg-gray-50 p-4">
         {stages.map((stage, index) => (
           <AggregationPipelineStage
             key={index}
@@ -99,6 +105,7 @@ const QueryBuilder: React.FC<QueryBuilderProps> = ({
             updateStage={updateStage}
             removeStage={removeStage}
             locked={index === 0} // Lock first stage
+            goBack={onClose} // Add goBack prop
           />
         ))}
       </div>
@@ -110,9 +117,6 @@ const QueryBuilder: React.FC<QueryBuilderProps> = ({
           <Button onClick={onClose}>Back</Button>
           <Button onClick={applyPipeline}>Refresh</Button>
         </div>
-      </div>
-      <div className="mt-4 text-xs text-gray-500">
-        Note: The data is limited to 3 records for experimentation purposes.
       </div>
     </div>
   );

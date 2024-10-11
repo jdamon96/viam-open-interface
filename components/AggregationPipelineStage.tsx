@@ -32,6 +32,7 @@ interface AggregationPipelineStageProps {
   updateStage: (index: number, updatedStage: AggregationStage) => void;
   removeStage: (index: number) => void;
   locked: boolean;
+  goBack: () => void; // Add goBack prop
 }
 
 const AggregationPipelineStage: React.FC<AggregationPipelineStageProps> = ({
@@ -41,6 +42,7 @@ const AggregationPipelineStage: React.FC<AggregationPipelineStageProps> = ({
   updateStage,
   removeStage,
   locked,
+  goBack, // Destructure goBack prop
 }) => {
   const { operator, body } = {
     operator: stage.operator,
@@ -76,27 +78,29 @@ const AggregationPipelineStage: React.FC<AggregationPipelineStageProps> = ({
       }`}
     >
       {/* Left Side: Stage Operator and Definition */}
-      <div className="flex-1">
-        <Label className="text-sm">Aggregation Pipeline Stage</Label>
-        <div className="text-xs flex space-x-2 items-center mb-2">
-          <Select
-            value={operator}
-            onValueChange={handleOperatorChange}
-            disabled={locked}
-          >
-            <SelectTrigger id={`operator-${index}`}>
-              <SelectValue placeholder="Select Operator" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="$match">$match</SelectItem>
-              <SelectItem value="$project">$project</SelectItem>
-              <SelectItem value="$group">$group</SelectItem>
-              <SelectItem value="$sort">$sort</SelectItem>
-              <SelectItem value="$limit">$limit</SelectItem>
-              <SelectItem value="$addFields">$addFields</SelectItem>
-              {/* Add more operators as needed */}
-            </SelectContent>
-          </Select>
+      <div className="flex-1 space-y-4">
+        <div className="h-16">
+          <Label className="text-sm">Aggregation Pipeline Stage</Label>
+          <div className="text-xs flex space-x-2 items-center mt-2">
+            <Select
+              value={operator}
+              onValueChange={handleOperatorChange}
+              disabled={locked}
+            >
+              <SelectTrigger id={`operator-${index}`}>
+                <SelectValue placeholder="Select Operator" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="$match">$match</SelectItem>
+                <SelectItem value="$project">$project</SelectItem>
+                <SelectItem value="$group">$group</SelectItem>
+                <SelectItem value="$sort">$sort</SelectItem>
+                <SelectItem value="$limit">$limit</SelectItem>
+                <SelectItem value="$addFields">$addFields</SelectItem>
+                {/* Add more operators as needed */}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         <div className="w-full">
           <JsonCodeEditor
@@ -104,52 +108,69 @@ const AggregationPipelineStage: React.FC<AggregationPipelineStageProps> = ({
             onChange={handleDefinitionChange}
             maxHeight="max-h-[256px]"
             readOnly={locked} // only readOnly if locked
+            className="h-[256px]"
           />
         </div>
       </div>
 
       {/* Right Side: Intermediate Data */}
-      <div className="w-1/2 max-h-full">
-        <Label className="text-sm">Result</Label>
-        {intermediateResult === undefined ? (
-          <div className="flex items-center space-x-4">
-            <Skeleton className="h-[256px] w-[256px]" />
-          </div>
-        ) : (
-          <JsonCodeEditor
-            value={JSON.stringify(intermediateResult, null, 2)}
-            maxHeight="max-h-[256px]"
-            onChange={() => {}}
-            readOnly={true} // Always readOnly
-          />
-        )}
+      <div className="w-1/2 max-h-full space-y-4">
+        <div className="h-4">
+          <Label className="text-sm">Result</Label>
+        </div>
+        <div className="bg-red-100 w-full">
+          {intermediateResult === undefined ? (
+            <div className="flex items-center space-x-4">
+              <Skeleton className="h-[256px] w-[256px]" />
+            </div>
+          ) : (
+            <JsonCodeEditor
+              value={JSON.stringify(intermediateResult, null, 2)}
+              maxHeight="max-h-[304px]"
+              onChange={() => {}}
+              readOnly={true} // Always readOnly
+              className="w-full"
+            />
+          )}
+        </div>
       </div>
 
       {/* Remove Stage Button */}
       {locked ? (
         <TooltipProvider>
-          <Tooltip>
+          <Tooltip delayDuration={100}>
             <TooltipTrigger>
               <LockIcon size={16} className="text-gray-500 mt-2" />
             </TooltipTrigger>
             <TooltipContent className="max-w-[200px] bg-gray-800 text-white border-none">
               <p>
-                These stages are locked while in the query builder (so you can
-                test your query with 3 records instead of all data)
+                This initial match stage is locked;{" "}
+                <span className="underline cursor-pointer" onClick={goBack}>
+                  edit it by configuring the data source
+                </span>
+                .
               </p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
       ) : (
-        <Button
-          type="button"
-          size={"icon"}
-          variant="ghost"
-          onClick={() => removeStage(index)}
-          className="mt-2"
-        >
-          <Trash size={16} />
-        </Button>
+        <TooltipProvider>
+          <Tooltip delayDuration={100}>
+            <TooltipTrigger>
+              <Button
+                type="button"
+                size={"icon"}
+                variant="ghost"
+                onClick={() => removeStage(index)}
+              >
+                <Trash size={16} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent className="-ml-8 max-w-[200px] bg-red-50 text-red-500 border-none">
+              <p>Delete Stage</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       )}
     </div>
   );

@@ -26,11 +26,12 @@ const JsonCodeEditor: FC<JsonCodeEditorProps> = ({
   maxHeight = "max-h-[512px]", // Default value for maxHeight
 }) => {
   return (
-    <div className={`block w-full max-w-xl mx-auto overflow-auto ${maxHeight}`}>
+    <div className={`block w-full mx-auto overflow-auto ${maxHeight} `}>
       <ReactSimpleCodeEditor
         value={value}
         onValueChange={onChange}
         highlight={(code) => highlight(code, languages.json, "json")}
+        textareaClassName="code-editor"
         padding={15}
         placeholder={placeholder}
         style={{
@@ -39,7 +40,7 @@ const JsonCodeEditor: FC<JsonCodeEditorProps> = ({
           overflowX: "auto",
           ...style,
         }}
-        className={`bg-gray-50 w-full rounded-sm whitespace-pre-wrap ${className}`}
+        className={`bg-gray-100 w-full rounded-sm whitespace-pre-wrap ${className} no-focus-outline`}
         readOnly={readOnly}
       />
     </div>
