@@ -60,6 +60,7 @@ interface AppState {
   setApiKeyId: (apiKeyId: string) => void;
   cards: DataCard[];
   setCards: (cards: DataCard[]) => void;
+  loadStateFromJson: (state: Partial<AppState>) => void;
 }
 
 interface ViamConfig {
@@ -92,6 +93,7 @@ const useAppStore = create(
       setApiKeyId: (apiKeyId) => set({ apiKeyId }),
       cards: [],
       setCards: (cards) => set({ cards }),
+      loadStateFromJson: (state) => set(state),
     }),
     {
       name: "custom-viam-dashboards-app-storage", // unique name
