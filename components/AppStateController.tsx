@@ -13,12 +13,8 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import ReactSimpleCodeEditor from "react-simple-code-editor";
-import { highlight, languages } from "prismjs";
-import "prismjs/components/prism-json";
-import "prismjs/components/prism-clike";
-import "prismjs/components/prism-javascript";
-import "prismjs/themes/prism.css"; //Example style, you can use another
+
+import JsonCodeEditor from "./JsonEditor";
 
 interface AppStateControllerProps {
   // Define props and propTypes here
@@ -73,21 +69,12 @@ const AppStateController: FC<AppStateControllerProps> = (props) => {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="block w-full max-w-xl mx-auto max-h-[512px] overflow-auto">
-            <ReactSimpleCodeEditor
-              value={jsonInput}
-              onValueChange={(code) => setJsonInput(code)}
-              highlight={(code) => highlight(code, languages.json, "json")}
-              padding={15}
-              placeholder="Paste your JSON configuration here"
-              style={{
-                fontFamily: '"Fira code", "Fira Mono", monospace',
-                fontSize: 12,
-                overflowX: "auto",
-              }}
-              className="bg-gray-50 w-full rounded-sm max-w-xl whitespace-pre-wrap"
-            />
-          </div>
+          <JsonCodeEditor
+            value={jsonInput}
+            onChange={setJsonInput}
+            placeholder="Paste your JSON configuration here"
+            className=""
+          />
 
           <DialogFooter className="flex justify-between">
             <Button variant={"outline"} onClick={handleCopyToClipboard}>
