@@ -14,6 +14,7 @@ interface JsonCodeEditorProps {
   style?: React.CSSProperties;
   readOnly?: boolean;
   maxHeight?: string; // Add maxHeight prop
+  minHeight?: string; // Add minHeight prop
 }
 
 const JsonCodeEditor: FC<JsonCodeEditorProps> = ({
@@ -24,9 +25,12 @@ const JsonCodeEditor: FC<JsonCodeEditorProps> = ({
   style = {},
   readOnly = false,
   maxHeight = "max-h-[512px]", // Default value for maxHeight
+  minHeight = "min-h-[256px]", // Default value for minHeight
 }) => {
   return (
-    <div className={`block w-full mx-auto overflow-auto ${maxHeight} `}>
+    <div
+      className={`block w-full mx-auto overflow-auto ${maxHeight} ${minHeight}`}
+    >
       <ReactSimpleCodeEditor
         value={value}
         onValueChange={onChange}
@@ -40,7 +44,7 @@ const JsonCodeEditor: FC<JsonCodeEditorProps> = ({
           overflowX: "auto",
           ...style,
         }}
-        className={`bg-gray-100 w-full rounded-sm whitespace-pre-wrap ${className} no-focus-outline`}
+        className={`bg-gray-100 w-full ${minHeight} rounded-sm whitespace-pre-wrap ${className} no-focus-outline`}
         readOnly={readOnly}
       />
     </div>

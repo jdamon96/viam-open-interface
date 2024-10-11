@@ -106,9 +106,9 @@ const AggregationPipelineStage: React.FC<AggregationPipelineStageProps> = ({
           <JsonCodeEditor
             value={jsonData}
             onChange={handleDefinitionChange}
+            minHeight="min-h-[256px]"
             maxHeight="max-h-[256px]"
             readOnly={locked} // only readOnly if locked
-            className="h-[256px]"
           />
         </div>
       </div>
@@ -118,7 +118,7 @@ const AggregationPipelineStage: React.FC<AggregationPipelineStageProps> = ({
         <div className="h-4">
           <Label className="text-sm">Result</Label>
         </div>
-        <div className="w-full">
+        <div className="w-full min-h-[304px]">
           {intermediateResult === undefined ? (
             <div className="flex items-center space-x-4">
               <Skeleton className="h-[304px] w-full" />
@@ -127,6 +127,7 @@ const AggregationPipelineStage: React.FC<AggregationPipelineStageProps> = ({
             <JsonCodeEditor
               value={JSON.stringify(intermediateResult, null, 2)}
               maxHeight="max-h-[304px]"
+              minHeight="min-h-[304px]"
               onChange={() => {}}
               readOnly={true} // Always readOnly
               className="w-full"
