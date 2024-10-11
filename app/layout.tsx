@@ -15,8 +15,8 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Viam Data Visaulizer",
-  description: "A data visualization tool for your machines on Viam",
+  title: "Viam Open Interface",
+  description: "An open source interface to your machines and data on Viam.",
 };
 
 export default function RootLayout({
