@@ -45,7 +45,7 @@ const ClientStatusIndicator: FC<ClientStatusIndicatorProps> = (props) => {
     if (!storedApiKey) {
       triggerClientConnectionHandler();
     }
-  }, []);
+  }, [triggerClientConnectionHandler, useAppStore]);
 
   return (
     <DropdownMenu>

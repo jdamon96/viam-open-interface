@@ -40,8 +40,8 @@ const VisualizationAppConfigImporter: FC<
           <DialogHeader>
             <DialogTitle>Import Configuration</DialogTitle>
             <DialogDescription>
-              Paste your JSON configuration below and click "Load State" to
-              import.
+              Paste your JSON configuration below and click &quot;Load
+              State&quot; to import.
             </DialogDescription>
           </DialogHeader>
 

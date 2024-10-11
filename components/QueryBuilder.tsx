@@ -1,5 +1,5 @@
 // components/QueryBuilder.tsx
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "./ui/button";
 import { Plus, ExternalLink } from "lucide-react";
 import useAppStore from "@/store/zustand";
@@ -30,27 +30,29 @@ const QueryBuilder: React.FC<QueryBuilderProps> = ({
   const stagesEndRef = useRef<HTMLDivElement>(null);
 
   // Function to apply the aggregation pipeline using Mingo
-  const applyPipeline = async () => {
+  const applyPipeline = useCallback(async () => {
     try {
-      const results = await applyAggregationPipeline(
-        stages,
-        currentlySelectedOrganization?.id!,
-        fetchTabularData,
-        true // Limit results to 3 records
-      );
-      setIntermediateResults(results);
+      if (currentlySelectedOrganization?.id) {
+        const results = await applyAggregationPipeline(
+          stages,
+          currentlySelectedOrganization?.id,
+          fetchTabularData,
+          true // Limit results to 3 records
+        );
+        setIntermediateResults(results);
+      }
     } catch (error) {
       console.error("Error applying pipeline:", error);
       setIntermediateResults([[`Error: ${error}`]]);
     }
-  };
+  }, [stages, currentlySelectedOrganization?.id, fetchTabularData]);
 
   // Apply pipeline whenever stages change
   useEffect(() => {
     if (stages.length > 0) {
       applyPipeline();
     }
-  }, [stages]);
+  }, [stages, applyPipeline]);
 
   // Handler functions
   const addStage = () => {

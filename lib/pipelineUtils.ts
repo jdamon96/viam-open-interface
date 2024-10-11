@@ -2,7 +2,7 @@
 
 import { AggregationStage } from "@/types/AggregationStage";
 import { Aggregator } from "mingo";
-import { useOperators, OperatorType } from "mingo/core";
+import { useOperators as loadOperators, OperatorType } from "mingo/core";
 import { $sum, $push } from "mingo/operators/accumulator";
 import {
   $dateToString,
@@ -23,15 +23,15 @@ import {
 // import {} from "mingo/operators/query";
 // import {} from "mingo/operators/update";
 import {} from "mingo/operators/window";
-useOperators(OperatorType.ACCUMULATOR, { $sum, $push });
-useOperators(OperatorType.EXPRESSION, {
+loadOperators(OperatorType.ACCUMULATOR, { $sum, $push });
+loadOperators(OperatorType.EXPRESSION, {
   $dateToString,
   $dateFromString,
   $substrBytes,
   $arrayToObject,
   $ifNull,
 });
-useOperators(OperatorType.PIPELINE, {
+loadOperators(OperatorType.PIPELINE, {
   $match,
   $project,
   $group,

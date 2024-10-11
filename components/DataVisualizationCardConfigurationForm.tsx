@@ -110,6 +110,7 @@ const DataVisualizationCardConfigurationForm: React.FC<
       );
     setStages([updatedInitMatchStage, ...stages.slice(1)]);
   }, [
+    stages,
     dataSource,
     dataSourceRobotId,
     visualizationType,
