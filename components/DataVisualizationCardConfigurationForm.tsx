@@ -23,14 +23,7 @@ import { applyAggregationPipeline } from "@/lib/pipelineUtils";
 import { AggregationStage } from "@/types/AggregationStage";
 
 // Mock data for visualization types
-const visualizationTypes = [
-  "Bar Chart",
-  "Stacked Bar Chart",
-  "Line Chart",
-  "Pie Chart",
-  "Scatter Plot",
-  "Table",
-];
+const visualizationTypes = ["Stacked Bar Chart", "Line Chart", "Table"];
 
 interface DataVisualizationCardConfigurationFormProps {
   card: DataCard;
