@@ -1,6 +1,6 @@
 // components/AggregationPipelineStage.tsx
 
-import React from "react";
+import React, { useState } from "react";
 import { Label } from "./ui/label";
 import {
   Select,
@@ -17,6 +17,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "./ui/tooltip";
+import JsonCodeEditor from "./JsonEditor"; // Import JsonCodeEditor
+import { Skeleton } from "./ui/skeleton";
 
 interface AggregationStage {
   operator: string;
@@ -45,18 +47,20 @@ const AggregationPipelineStage: React.FC<AggregationPipelineStageProps> = ({
     body: stage.definition,
   };
 
+  const [jsonData, setJsonData] = useState(JSON.stringify(body, null, 2));
+
   const handleOperatorChange = (val: string) => {
     if (!locked) {
       updateStage(index, { ...stage, operator: val });
     }
   };
 
-  const handleDefinitionChange = (e: React.FormEvent<HTMLPreElement>) => {
+  const handleDefinitionChange = (value: string) => {
     if (!locked) {
-      const content = e.currentTarget.textContent || "";
+      setJsonData(value);
       let parsedContent;
       try {
-        parsedContent = JSON.parse(content);
+        parsedContent = JSON.parse(value);
       } catch (error) {
         console.error("Invalid JSON format:", error);
         return;
@@ -95,36 +99,30 @@ const AggregationPipelineStage: React.FC<AggregationPipelineStageProps> = ({
           </Select>
         </div>
         <div className="w-full">
-          <pre
-            contentEditable={!locked}
-            className={`w-full bg-gray-100 p-4 rounded-sm text-xs break-words whitespace-pre-wrap ${
-              locked ? "cursor-not-allowed" : ""
-            }`}
-            style={{ width: "100%", maxHeight: "200px", overflowY: "auto" }}
-            onInput={(e: React.FormEvent<HTMLPreElement>) =>
-              handleDefinitionChange(e)
-            }
-          >
-            <code
-              id={`definition-${index}`}
-              className="break-words whitespace-pre-wrap"
-            >
-              {JSON.stringify(body, null, 2)}
-            </code>
-          </pre>
+          <JsonCodeEditor
+            value={jsonData}
+            onChange={handleDefinitionChange}
+            maxHeight="max-h-[256px]"
+            readOnly={locked} // only readOnly if locked
+          />
         </div>
       </div>
 
       {/* Right Side: Intermediate Data */}
       <div className="w-1/2 max-h-full">
         <Label className="text-sm">Result</Label>
-        <div className="mt-1 p-2 bg-gray-100 rounded h-60 overflow-y-scroll no-scrollbar text-xs">
-          {intermediateResult ? (
-            <pre>{JSON.stringify(intermediateResult, null, 2)}</pre>
-          ) : (
-            <span>No data</span>
-          )}
-        </div>
+        {intermediateResult === undefined ? (
+          <div className="flex items-center space-x-4">
+            <Skeleton className="h-[256px] w-[256px]" />
+          </div>
+        ) : (
+          <JsonCodeEditor
+            value={JSON.stringify(intermediateResult, null, 2)}
+            maxHeight="max-h-[256px]"
+            onChange={() => {}}
+            readOnly={true} // Always readOnly
+          />
+        )}
       </div>
 
       {/* Remove Stage Button */}

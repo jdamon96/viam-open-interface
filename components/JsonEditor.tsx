@@ -4,7 +4,7 @@ import { highlight, languages } from "prismjs";
 import "prismjs/components/prism-json";
 import "prismjs/components/prism-clike";
 import "prismjs/components/prism-javascript";
-import "prismjs/themes/prism.css"; //Example style, you can use another
+import "prismjs/themes/prism.css";
 
 interface JsonCodeEditorProps {
   value: string;
@@ -12,6 +12,8 @@ interface JsonCodeEditorProps {
   placeholder?: string;
   className?: string;
   style?: React.CSSProperties;
+  readOnly?: boolean;
+  maxHeight?: string; // Add maxHeight prop
 }
 
 const JsonCodeEditor: FC<JsonCodeEditorProps> = ({
@@ -20,9 +22,11 @@ const JsonCodeEditor: FC<JsonCodeEditorProps> = ({
   placeholder = "Paste your JSON configuration here",
   className = "",
   style = {},
+  readOnly = false,
+  maxHeight = "max-h-[512px]", // Default value for maxHeight
 }) => {
   return (
-    <div className="block w-full max-w-xl mx-auto max-h-[512px] overflow-auto">
+    <div className={`block w-full max-w-xl mx-auto overflow-auto ${maxHeight}`}>
       <ReactSimpleCodeEditor
         value={value}
         onValueChange={onChange}
@@ -36,6 +40,7 @@ const JsonCodeEditor: FC<JsonCodeEditorProps> = ({
           ...style,
         }}
         className={`bg-gray-50 w-full rounded-sm whitespace-pre-wrap ${className}`}
+        readOnly={readOnly}
       />
     </div>
   );
