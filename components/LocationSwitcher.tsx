@@ -1,24 +1,19 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import {
   Command,
+  CommandEmpty,
   CommandGroup,
+  CommandInput,
   CommandItem,
   CommandList,
-  CommandSeparator,
 } from "./ui/command";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Skeleton } from "./ui/skeleton";
-import { CheckIcon, MapPin } from "lucide-react";
+import { CheckIcon, MapPin, ChevronsUpDown } from "lucide-react";
 import useListViamLocations from "@/hooks/useListViamLocations";
 import useAppStore from "@/store/zustand";
 
@@ -60,6 +55,9 @@ export default function LocationSwitcher({ className }: LocationSwitcherProps) {
     currentlySelectedOrganization,
   } = useAppStore();
 
+  const [open, setOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+
   useEffect(() => {
     if (currentlySelectedOrganization) {
       fetchLocationsAndSetInAppStore(currentlySelectedOrganization.id);
@@ -78,16 +76,21 @@ export default function LocationSwitcher({ className }: LocationSwitcherProps) {
 
   const handleLocationSelect = (loc: Location) => {
     setCurrentlySelectedLocation(loc);
+    setOpen(false);
     // Add any additional logic needed when a location is selected
   };
 
+  const filteredLocations = availableLocations.filter((loc) =>
+    loc.name.toLowerCase().includes(searchValue.toLowerCase())
+  );
+
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           variant="ghost"
           role="combobox"
-          aria-expanded={false}
+          aria-expanded={open}
           aria-label="Select a location"
           className={cn("justify-between space-x-2", className)}
         >
@@ -99,19 +102,25 @@ export default function LocationSwitcher({ className }: LocationSwitcherProps) {
               )}
             </p>
           </div>
-          <CaretSortIcon className="ml-auto h-4 w-4 shrink-0 opacity-50" />
+          <ChevronsUpDown className="ml-auto h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0">
         <Command>
+          <CommandInput
+            placeholder="Search location..."
+            value={searchValue}
+            onValueChange={setSearchValue}
+          />
           <CommandList>
+            <CommandEmpty>No location found.</CommandEmpty>
             <CommandGroup heading="Locations">
               {loading ? (
                 <Skeleton className="h-8 w-full" />
               ) : error ? (
                 <CommandItem disabled>Error loading locations</CommandItem>
-              ) : availableLocations && availableLocations.length > 0 ? (
-                availableLocations
+              ) : filteredLocations && filteredLocations.length > 0 ? (
+                filteredLocations
                   .sort((a, b) => {
                     const robotCountA = "robotCount" in a ? a.robotCount : 0;
                     const robotCountB = "robotCount" in b ? b.robotCount : 0;

@@ -56,9 +56,6 @@ const AboutModalContent = () => {
           </p>
         </DialogDescription>
       </DialogHeader>
-      <DialogClose asChild>
-        <Button>Close</Button>
-      </DialogClose>
     </DialogContent>
   );
 };
