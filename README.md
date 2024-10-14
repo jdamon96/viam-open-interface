@@ -4,16 +4,8 @@
 
 An open source interface to your machines and data on Viam. Provide a Viam organization API Key & API Key ID to get started.
 
-## To-Do
-
-- [ ] implement data visualizations
-   - [x] Stacked Bar Chart (done 10/11/24)
-   - [ ] Line Chart
-   - [ ] Table
-- [ ] surface in UX the chart data format expected for each chart visualization type (chart lib: https://ui.shadcn.com/charts)
-- [ ] Add camera feeds
-- [ ] (eventually): add prompt -> aggregation pipeline
-
+## To-Do's
+- Public work log document: https://docs.google.com/document/d/1vtlsYckiTM8ND0JuJIJ98vEfwCfWXfgrj5eiwK6yL5A/edit?usp=sharing
 
 ## Getting Started
 
