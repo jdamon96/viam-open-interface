@@ -16,6 +16,10 @@ import CardsList from "@/components/CardsList";
 import { addDays } from "date-fns";
 
 export default function CustomDashboard() {
+  const [editingCard, setEditingCard] = useState<DataCard | null>(null);
+  const [userIsEditingCard, setUserIsEditingCard] = useState(false);
+  const [isQueryBuilder, setIsQueryBuilder] = useState(false);
+
   const {
     config,
     setConfig,
@@ -30,8 +34,6 @@ export default function CustomDashboard() {
     setCards,
   } = useAppStore();
 
-  const [editingCard, setEditingCard] = useState<DataCard | null>(null);
-  const [userIsEditingCard, setUserIsEditingCard] = useState(false);
   const { fetchRobotsAndSetInAppStore } = useListViamRobots();
 
   useEffect(() => {
@@ -108,8 +110,6 @@ export default function CustomDashboard() {
     [apiKey, apiKeyId, setConfig]
   );
 
-  const [isQueryBuilder, setIsQueryBuilder] = useState(false);
-
   if (!config) {
     return (
       <ApiConfigForm
@@ -122,13 +122,19 @@ export default function CustomDashboard() {
     );
   }
 
+  const matchingOrgLocCards = cards.filter(
+    (card) =>
+      card.orgId === currentlySelectedOrganization?.id &&
+      card.locId === currentlySelectedLocation?.id
+  );
+
   return (
     <div className="px-4">
       <Header />
       <div>
         <h1 className="py-8 text-2xl">Visualize your machine data</h1>
         <CardsList
-          cards={cards}
+          cards={matchingOrgLocCards}
           onAddCard={handleAddCard}
           onEditCard={(card) => {
             setEditingCard(card);
