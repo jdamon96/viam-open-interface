@@ -37,6 +37,14 @@ const useGetViamRobotParts = (): UseGetViamRobotPartsResult => {
    *
    * @param {string} robotId - The ID of the robot to query.
    */
+  /**
+   * TODO:
+   * - update this func name to be a bit more appropriate for how we're using it: getRobotPartConfig
+   * - update this to rather than use appClient.getRobotParts(robotId), use:
+   * await window.fetch(`/api/json1/config?id=49a83adc-8f6e-47c9-80f9-249b5e26f2f5&client=true&full=t`)
+   * - in order to do this i will need to provide an accessToken - need to figure out how to get
+   * that given current API Key auth setup.
+   */
   const fetchRobotParts = useCallback(
     async (robotId: string) => {
       console.debug("fetchRobotParts called with robotId:", robotId);
