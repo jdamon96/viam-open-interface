@@ -55,7 +55,9 @@ const SearchableMultiSelect: React.FC<SearchableMultiSelectProps> = ({
     } else {
       newSelected = [...selectedOptionIds, val];
     }
-    onChange && onChange(newSelected);
+    if (onChange) {
+      onChange(newSelected);
+    }
   };
 
   return (

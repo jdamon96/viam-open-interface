@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { DateRange } from "react-day-picker";
 import { AggregationStage } from "@/types/AggregationStage";
+import { Fragment } from "@/hooks/useListViamOrganizationFragments";
 
 export interface DataCard {
   id: string;
@@ -42,11 +43,6 @@ export interface Machine {
   createdAt?: string;
 }
 
-export interface Fragment {
-  id: string;
-  name: string;
-}
-
 interface AppState {
   availableOrganizations: Organization[];
   setAvailableOrganizations: (organizations: Organization[]) => void;
@@ -62,6 +58,8 @@ interface AppState {
   setLocationMachines: (machines: Machine[]) => void;
   organizationFragments: Fragment[];
   setOrganizationFragments: (fragments: Fragment[]) => void;
+  fragmentToMachinesMap: Record<string, string[]>; // Map of fragment ID to machine IDs
+  setFragmentToMachinesMap: (map: Record<string, string[]>) => void;
   config: ViamConfig | null;
   setConfig: (config: ViamConfig | null) => void;
   apiKey: string;
@@ -98,6 +96,8 @@ const useAppStore = create(
       organizationFragments: [],
       setOrganizationFragments: (fragments) =>
         set({ organizationFragments: fragments }),
+      fragmentToMachinesMap: {},
+      setFragmentToMachinesMap: (map) => set({ fragmentToMachinesMap: map }),
       config: null,
       setConfig: (config) => set({ config }),
       apiKey: "",
