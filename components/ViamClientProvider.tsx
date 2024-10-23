@@ -46,7 +46,7 @@ export const ViamClientProvider = ({
       const { key: apiKeySecret, id: apiKeyId } = config;
 
       const opts: ViamClientOptions = {
-        credential: {
+        credentials: {
           type: "api-key",
           authEntity: apiKeyId,
           payload: apiKeySecret,

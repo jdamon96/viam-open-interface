@@ -45,6 +45,10 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import JsonCodeEditor from "./JsonEditor";
+import SearchableMachineByFragmentSelect from "./SearchableMachineByFragmentSelect";
+import useListViamOrganizationFragments, {
+  Fragment,
+} from "@/hooks/useListViamOrganizationFragments";
 
 const visualizationTypes = ["Stacked Bar Chart", "Line Chart", "Table"];
 
@@ -96,13 +100,47 @@ const DataVisualizationCardConfigurationForm: React.FC<
   const [stages, setStages] = useState<AggregationStage[]>(
     card.aggregationStages ?? []
   );
-  const { currentlySelectedLocation, currentlySelectedOrganization } =
-    useAppStore();
+  const {
+    currentlySelectedLocation,
+    currentlySelectedOrganization,
+    organizationFragments,
+  } = useAppStore();
 
   const { fetchRobotParts, robotParts } = useGetViamRobotParts();
 
-  const { fetchTabularData, loading, error, data } =
-    useViamGetTabularDataByMQL();
+  const {
+    fetchTabularData,
+    loading: tabularDataLoading,
+    error: tabularDataError,
+    data,
+  } = useViamGetTabularDataByMQL();
+
+  const {
+    fetchFragmentsAndSetInAppStore,
+    loading: fragmentsLoading,
+    error: fragmentsError,
+  } = useListViamOrganizationFragments();
+
+  useEffect(() => {
+    if (currentlySelectedOrganization?.id && currentlySelectedLocation?.id) {
+      console.log(
+        "[DataVisualizationCardConfigForm useEffect]: Fetching fragments for organization ID:",
+        currentlySelectedOrganization.id
+      );
+      fetchFragmentsAndSetInAppStore(
+        currentlySelectedOrganization.id,
+        currentlySelectedLocation.id
+      );
+    }
+  }, [
+    currentlySelectedOrganization,
+    currentlySelectedLocation,
+    fetchFragmentsAndSetInAppStore,
+  ]);
+
+  if (fragmentsError) {
+    console.error("Error fetching fragments", fragmentsError);
+  }
 
   // **State for Group of Machines**
   const [selectedGroupMachines, setSelectedGroupMachines] = useState<string[]>(
@@ -120,34 +158,6 @@ const DataVisualizationCardConfigurationForm: React.FC<
         label: machine.name,
       })),
     [locationMachines]
-  );
-
-  // Memoize fragments to prevent unnecessary recalculations
-  const fragments = useMemo(
-    () => [
-      {
-        value: "fragment1",
-        label: "Fragment 1",
-        machines: [
-          "a5b306ea-1d01-4c61-9650-04a077c67a92",
-          "d4e8acde-d1b9-4ed6-b9aa-229db1211d78",
-        ],
-      },
-      {
-        value: "fragment2",
-        label: "Fragment 2",
-        machines: [
-          "19cb3cb8-ac17-4b34-9629-18597c95ae98",
-          "another-machine-id",
-        ],
-      },
-      {
-        value: "fragment3",
-        label: "Fragment 3",
-        machines: ["some-other-machine-id"],
-      },
-    ],
-    []
   );
 
   // Fetch Robot Parts when machineSource changes
@@ -240,8 +250,8 @@ const DataVisualizationCardConfigurationForm: React.FC<
   }, []);
 
   const handleFragmentSelected = useCallback(
-    (selectedFragment: string | null) => {
-      setSelectedGroupFragment(selectedFragment);
+    (selectedFragmentId: string | null) => {
+      setSelectedGroupFragment(selectedFragmentId);
     },
     []
   );
@@ -326,7 +336,9 @@ const DataVisualizationCardConfigurationForm: React.FC<
                 selectedGroupMachinesIds={selectedGroupMachines}
                 onMachinesSelected={handleMachinesSelected}
                 onFragmentSelected={handleFragmentSelected}
-                fragments={fragments}
+                //@ts-ignore
+                fragments={organizationFragments}
+                fragmentsLoading={fragmentsLoading}
               />
             </TabsContent>
           </Tabs>
@@ -335,6 +347,7 @@ const DataVisualizationCardConfigurationForm: React.FC<
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label>Data Aggregation Pipeline</Label>
+
               <Button
                 variant={"ghost"}
                 onClick={() => toggleQueryBuilder(true)}
@@ -521,12 +534,9 @@ interface GroupOfMachinesSelectionFormProps {
   locationMachines: Robot[];
   selectedGroupMachinesIds: string[];
   onMachinesSelected: (selectedMachines: string[]) => void;
-  onFragmentSelected: (selectedFragment: string | null) => void;
-  fragments: {
-    value: string;
-    label: string;
-    machines: string[];
-  }[];
+  onFragmentSelected: (selectedFragmentId: string | null) => void;
+  fragments: Fragment[];
+  fragmentsLoading?: boolean;
 }
 
 const GroupOfMachinesSelectionForm: React.FC<
@@ -537,6 +547,7 @@ const GroupOfMachinesSelectionForm: React.FC<
   onMachinesSelected,
   onFragmentSelected,
   fragments,
+  fragmentsLoading,
 }) => {
   const [selectionType, setSelectionType] = useState<"specific" | "fragment">(
     "specific"
@@ -544,8 +555,9 @@ const GroupOfMachinesSelectionForm: React.FC<
   const [selectedMachines, setSelectedMachines] = useState<string[]>(
     selectedGroupMachinesIds
   );
-  const [selectedFragment, setSelectedFragment] = useState<string | null>(null);
-  const [openFragments, setOpenFragments] = useState(false);
+  const [selectedFragmentId, setSelectedFragmentId] = useState<string | null>(
+    null
+  );
 
   // Memoize machine options
   const machines = useMemo(
@@ -557,46 +569,27 @@ const GroupOfMachinesSelectionForm: React.FC<
     [locationMachines]
   );
 
-  // Effect to handle selection changes
-  useEffect(() => {
-    if (selectionType === "specific") {
-      onMachinesSelected(selectedMachines);
-      onFragmentSelected(null);
-    } else if (selectionType === "fragment" && selectedFragment) {
-      const fragment = fragments.find((f) => f.value === selectedFragment);
-      if (fragment) {
-        onMachinesSelected(fragment.machines);
-      }
-    } else {
-      onMachinesSelected([]);
-    }
-  }, [
-    selectionType,
-    selectedMachines,
-    selectedFragment,
-    fragments,
-    onMachinesSelected,
-    onFragmentSelected,
-  ]);
-
   // Memoize handler to prevent re-renders
   const handleSelectionTypeChange = useCallback(
     (value: "specific" | "fragment") => {
       setSelectionType(value);
       setSelectedMachines([]);
-      setSelectedFragment(null);
+      onMachinesSelected([]);
+      setSelectedFragmentId(null);
+      onFragmentSelected(null);
     },
-    []
+    [onMachinesSelected, onFragmentSelected]
   );
 
-  // Handler when a fragment is selected
-  const handleFragmentSelect = useCallback(
-    (fragmentValue: string) => {
-      setSelectedFragment(fragmentValue);
-      setOpenFragments(false);
-      onFragmentSelected(fragmentValue);
+  // Handler for fragment selection
+  const handleMachinesSelectedFromFragment = useCallback(
+    (selectedMachinesIds: string[]) => {
+      setSelectedMachines(selectedMachinesIds);
+      onMachinesSelected(selectedMachinesIds);
+      // Optionally, set the selected fragment ID
+      // Here, you might want to set it based on some logic
     },
-    [onFragmentSelected]
+    [onMachinesSelected]
   );
 
   return (
@@ -610,12 +603,9 @@ const GroupOfMachinesSelectionForm: React.FC<
           <Label htmlFor="specific">Choose specific machines</Label>
         </div>
         <div className="flex items-center space-x-2">
-          <RadioGroupItem value="fragment" id="fragment" disabled />
-          <Label htmlFor="fragment" className="text-gray-400">
-            Choose machines by configuration fragment{" "}
-            <Badge variant="secondary" className="mr-2">
-              Coming Soon
-            </Badge>
+          <RadioGroupItem value="fragment" id="fragment" />
+          <Label htmlFor="fragment" className="">
+            Choose machines by configuration fragment
           </Label>
         </div>
       </RadioGroup>
@@ -633,73 +623,12 @@ const GroupOfMachinesSelectionForm: React.FC<
       )}
 
       {selectionType === "fragment" && (
-        <Popover open={openFragments} onOpenChange={setOpenFragments}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              aria-expanded={openFragments}
-              className="w-full justify-between"
-            >
-              {selectedFragment
-                ? fragments.find((f) => f.value === selectedFragment)?.label
-                : "Select fragment..."}
-              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-full p-0">
-            <Command>
-              <CommandInput placeholder="Search fragments..." />
-              <CommandEmpty>No fragment found.</CommandEmpty>
-              <CommandGroup>
-                {fragments.map((fragment) => (
-                  <CommandItem
-                    key={fragment.value}
-                    onSelect={() => handleFragmentSelect(fragment.value)}
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        selectedFragment === fragment.value
-                          ? "opacity-100"
-                          : "opacity-0"
-                      )}
-                    />
-                    {fragment.label}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </Command>
-          </PopoverContent>
-        </Popover>
+        <SearchableMachineByFragmentSelect
+          fragments={fragments}
+          fragmentsLoading={fragmentsLoading}
+          onMachinesSelected={handleMachinesSelectedFromFragment}
+        />
       )}
-
-      {/* 
-      Uncomment the following block if you want to display selected machines or fragments
-      
-      <div className="space-y-2">
-        <Label>
-          Selected{" "}
-          {selectionType === "specific" ? "Machines" : "Fragment Machines"}:
-        </Label>
-        <div className="flex flex-wrap gap-2">
-          {selectionType === "specific"
-            ? selectedMachines.map((machineValue) => (
-                <Badge key={machineValue} variant="secondary">
-                  {machines.find((m) => m.value === machineValue)?.label}
-                </Badge>
-              ))
-            : selectedFragment &&
-              fragments
-                .find((f) => f.value === selectedFragment)
-                ?.machines.map((machine) => (
-                  <Badge key={machine} variant="secondary">
-                    {machine}
-                  </Badge>
-                ))}
-        </div>
-      </div> 
-      */}
     </div>
   );
 };

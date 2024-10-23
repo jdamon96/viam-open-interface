@@ -3,11 +3,24 @@ import { ViamClientContext } from "@/components/ViamClientProvider";
 import useAppStore from "@/store/zustand";
 import { ViamClient } from "@viamrobotics/sdk";
 
-interface Fragment {
-  // Define the structure of the Fragment object based on your API response
+export interface Fragment {
   id: string;
   name: string;
-  // Add other relevant fields
+  createdOn: {
+    nanos: number;
+    seconds: number;
+  };
+  onlyUsedByOwner: boolean;
+  organizationCount: number;
+  organizationName: string;
+  organizationOwner: string;
+  public: boolean;
+  robotPartCount: number;
+  visibility: number;
+  fields: {
+    components: Record<string, unknown>;
+    services: Record<string, unknown>;
+  };
 }
 
 interface UseListViamOrganizationFragmentsResult {
@@ -15,6 +28,7 @@ interface UseListViamOrganizationFragmentsResult {
   error?: Error;
   fetchFragmentsAndSetInAppStore: (
     orgId: string,
+    locId: string,
     fragmentVisibility?: string[]
   ) => Promise<void>;
 }
@@ -39,26 +53,60 @@ const useListViamOrganizationFragments =
      */
     const getAllOrgFragments = async (orgId: string): Promise<Fragment[]> => {
       if (!viamClientContext.client?.appClient) {
-        console.debug(
-          "Viam app client is not initialized. Triggering client connection"
-        );
         await viamClientContext.triggerClientConnection();
       }
 
       if (!viamClientContext.client?.appClient) {
-        const errorMsg = "Viam app client is not initialized.";
-        console.error(errorMsg);
+        const errorMsg =
+          "[useListViamOrganizationFragments - getAllOrgFragments]: Viam app client is not initialized.";
         throw new Error(errorMsg);
       }
 
-      console.debug("Fetching fragments created by organization ID:", orgId);
-      const fragments = await viamClientContext.client.appClient.listFragments(
-        orgId,
-        false, // Assuming publicOnly is deprecated and not used
-        [0] // 1 is private, 2 is public, 3 is unlisted, 0 is unspecified
+      try {
+        const fragments =
+          await viamClientContext.client.appClient.listFragments(orgId, false, [
+            0,
+          ]);
+        //@ts-ignore
+        return fragments || [];
+      } catch (error) {
+        return [];
+      }
+    };
+
+    /**
+     * Fetches the list of fragments in use by the location's machines.
+     *
+     * @param {string} locId - The ID of the location to list fragments for.
+     * @returns {Promise<Fragment[]>} - A promise that resolves to the list of fragments.
+     */
+    const getAllFragmentsInUseByLocationMachines = async (
+      locId: string
+    ): Promise<Fragment[]> => {
+      let fragmentsInUseByLocationMachines: Fragment[] = [];
+
+      // step 1: Fetch all machines associated with the location
+      const machines = await viamClientContext?.client?.appClient?.listRobots(
+        locId
       );
 
-      return fragments || [];
+      // step 2: Fetch all fragments associated with the machines
+      if (machines) {
+        for (const machine of machines) {
+          const machineFragments =
+            await viamClientContext?.client?.appClient?.listMachineFragments(
+              machine.id
+            );
+          //@ts-ignore
+          fragmentsInUseByLocationMachines = [
+            ...fragmentsInUseByLocationMachines,
+            ...(machineFragments ?? []),
+          ];
+        }
+      }
+
+      // step 3: Return the list of fragments associated with the machines
+      return fragmentsInUseByLocationMachines;
     };
 
     /**
@@ -70,30 +118,26 @@ const useListViamOrganizationFragments =
     const getAllFragmentsInUseByOrgMachines = async (
       orgId: string
     ): Promise<Fragment[]> => {
-      // TO_DO: finish this implementation
       let fragmentsInUseByOrgMachines: Fragment[] = [];
-      // step 1: Fetch all machines associated with the organization
-      const machines = await viamClientContext?.client?.appClient?.listRobots(
-        orgId
-      );
-      // step 2: Fetch all fragments associated with the machines
-      if (machines) {
-        for (const machine of machines) {
-          // Naveed said on 10/17/24 `listMachineFragments` should be released on monday 10/21/24
-          // https://viaminc.slack.com/archives/C0653ULNNAX/p1729177614079899?thread_ts=1729176402.804239&cid=C0653ULNNAX
-          const machineFragments =
-            viamClientContext?.client?.appClient?.listMachineFragments(
-              machine.id
-            );
+
+      // step 1: Fetch all locations associated with the organization
+      const locations =
+        await viamClientContext?.client?.appClient?.listLocations(orgId);
+
+      // step 2: Fetch all fragments associated with the locations' machines
+      if (locations) {
+        for (const location of locations) {
+          const locationFragments =
+            await getAllFragmentsInUseByLocationMachines(location.id);
           fragmentsInUseByOrgMachines = [
             ...fragmentsInUseByOrgMachines,
-            ...machineFragments,
+            ...locationFragments,
           ];
         }
       }
 
-      // step 3: Return the list of fragments associated with the machines
-      return [];
+      // step 3: Return the list of fragments associated with the organization's machines
+      return fragmentsInUseByOrgMachines;
     };
 
     /**
@@ -102,39 +146,41 @@ const useListViamOrganizationFragments =
      * @param {string} orgId - The ID of the organization to list fragments for.
      */
     const fetchFragmentsAndSetInAppStore = useCallback(
-      async (orgId: string) => {
+      async (orgId: string, locId: string) => {
         setLoading(true);
         setError(undefined);
         setOrganizationFragments([]);
 
         try {
           const orgFragments = await getAllOrgFragments(orgId);
+
+          // const fragmentsInUseByOrgMachines =
+          //   await getAllFragmentsInUseByOrgMachines(orgId);
           const fragmentsInUseByOrgMachines =
-            await getAllFragmentsInUseByOrgMachines(orgId);
+            await getAllFragmentsInUseByLocationMachines(locId);
 
           const allOrgAssociatedFragments = [
             ...orgFragments,
             ...fragmentsInUseByOrgMachines,
           ];
 
-          if (allOrgAssociatedFragments.length > 0) {
-            console.debug(
-              "Fragments fetched successfully:",
-              allOrgAssociatedFragments
-            );
-            setOrganizationFragments(allOrgAssociatedFragments);
+          const uniqueOrgAssociatedFragments = Array.from(
+            new Set(allOrgAssociatedFragments.map((fragment) => fragment.id))
+          )
+            .map((id) =>
+              allOrgAssociatedFragments.find((fragment) => fragment.id === id)
+            )
+            .filter((fragment): fragment is Fragment => fragment !== undefined); // Filter out undefined values
+
+          if (uniqueOrgAssociatedFragments.length > 0) {
+            setOrganizationFragments(uniqueOrgAssociatedFragments);
           } else {
-            const errorMsg =
-              "No fragments found for the specified organization.";
-            console.warn(errorMsg);
-            setError(new Error(errorMsg));
+            setOrganizationFragments([]);
           }
         } catch (err: any) {
-          console.error("Error fetching fragments:", err);
           setError(err);
         } finally {
           setLoading(false);
-          console.debug("fetchFragments completed");
         }
       },
       [viamClientContext.client?.appClient, setOrganizationFragments]
