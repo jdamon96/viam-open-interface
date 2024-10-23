@@ -6,7 +6,30 @@ import { X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-const Dialog = DialogPrimitive.Root;
+type DialogContextValue = {
+  isInsideDialog: boolean;
+};
+
+export const DialogContext = React.createContext<DialogContextValue>({
+  isInsideDialog: false,
+});
+
+const DialogProvider = ({
+  children,
+}: React.PropsWithChildren<DialogContextValue>) => (
+  <DialogContext.Provider value={{ isInsideDialog: true }}>
+    {children}
+  </DialogContext.Provider>
+);
+
+const Dialog: typeof DialogPrimitive.Root = (props) => (
+  // this provider exists to tell downstream consumers (like Popover) that they
+  // are inside a dialog and should render themselves accordingly
+
+  <DialogProvider isInsideDialog={true}>
+    <DialogPrimitive.Root {...props} />
+  </DialogProvider>
+);
 
 const DialogTrigger = DialogPrimitive.Trigger;
 

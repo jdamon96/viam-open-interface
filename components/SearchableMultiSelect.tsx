@@ -19,6 +19,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Option {
   value: string;
@@ -87,6 +88,7 @@ const SearchableMultiSelect: React.FC<SearchableMultiSelectProps> = ({
         <Command className="w-full">
           <CommandInput placeholder="Search..." className="w-full" />
           <CommandEmpty>No options found.</CommandEmpty>
+
           <CommandList>
             <CommandGroup>
               {options.map((option) => (
