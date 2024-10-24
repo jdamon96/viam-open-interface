@@ -17,6 +17,8 @@ import {
   Braces,
   Check,
   ChevronsUpDown,
+  Info,
+  Plug,
   Wrench,
 } from "lucide-react";
 import useAppStore, { DataCard } from "@/store/zustand";
@@ -285,7 +287,53 @@ const DataVisualizationCardConfigurationForm: React.FC<
 
           {/* Visualization Type */}
           <div className="space-y-2">
-            <Label htmlFor="visualizationType">Visualization Type</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="visualizationType">Visualization Type</Label>
+
+              {visualizationType && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant={"ghost"}
+                        // onClick={() => toggleQueryBuilder(true)}
+                        className="text-xs bg-yellow-100 text-yellow-700 hover:bg-yellow-200 hover:text-yellow-800 hover:cursor-pointer rounded px-3 py-1 flex items-center space-x-1"
+                      >
+                        <Info size={16} className="text-yellow-700" />
+                        <span className="font-semibold">
+                          {" "}
+                          Expected data format
+                        </span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent className="px-0 py-0">
+                      <div className="flex flex-col">
+                        <div className="p-3 border-b border-gray-200 text-sm italic">
+                          Example input data format for a{" "}
+                          <span className="font-semibold">
+                            {visualizationType}
+                          </span>{" "}
+                          data visualization.
+                        </div>
+                        <JsonCodeEditor
+                          value={JSON.stringify(
+                            getVisualizationTypeExpectedDataFormat(
+                              visualizationType
+                            ),
+                            null,
+                            2
+                          )}
+                          onChange={() => {}}
+                          minHeight="min-h-[256px]"
+                          maxHeight="max-h-[256px]"
+                          readOnly={true} // only readOnly if locked
+                        />
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </div>
             <Select
               value={visualizationType}
               onValueChange={setVisualizationType}
@@ -643,4 +691,67 @@ const GroupOfMachinesSelectionForm: React.FC<
       )}
     </div>
   );
+};
+
+// Utility function to get expected data format for each visualization type
+const getVisualizationTypeExpectedDataFormat = (visualizationType: string) => {
+  console.log(`Visualization Type: ${visualizationType}`);
+  switch (visualizationType) {
+    case "Stacked Bar Chart":
+      return [
+        {
+          // The category for the x-axis
+          category: "Category Example",
+          // The value for the first series
+          series1: 100,
+          // The value for the second series
+          series2: 200,
+        },
+        {
+          category: "Another Category",
+          series1: 150,
+          series2: 250,
+        },
+      ];
+    case "Line Chart":
+      return [
+        {
+          // The date for the x-axis
+          date: "2023-01-01",
+          // The value for the first metric
+          metric1: 5,
+          // The value for the second metric
+          metric2: 60,
+        },
+        {
+          date: "2023-01-02",
+          metric1: 7,
+          metric2: 65,
+        },
+      ];
+    case "Table":
+      return [
+        {
+          // The timestamp of the data
+          timestamp: "2023-01-01T00:00:00Z",
+          // The ID of the device
+          deviceId: "device-001",
+          // The voltage reading
+          voltage: 3.7,
+          // The current reading
+          current: 1.2,
+          // The power reading
+          power: 4.44,
+        },
+        {
+          timestamp: "2023-01-01T01:00:00Z",
+          deviceId: "device-002",
+          voltage: 3.8,
+          current: 1.1,
+          power: 4.18,
+        },
+      ];
+    default:
+      return [];
+  }
 };
