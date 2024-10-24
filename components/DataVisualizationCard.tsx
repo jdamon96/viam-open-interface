@@ -1,4 +1,3 @@
-// components/DataVisualizationCard.tsx
 "use client";
 
 import React, { useEffect, useState, useMemo } from "react";
@@ -59,10 +58,15 @@ const colorPalette = [
   "#ff7300",
 ];
 
+/**
+ * Updated function to construct initial $match stage based on card configuration.
+ * Supports both single machine and group of machines selections.
+ */
 export const constructInitialMatchStageBasedOnCardConfigurationForm = (
   orgId: string,
   locId: string,
   robotId?: string,
+  groupMachineIds?: string[],
   date?: DateRange,
   dataSource?: string
 ): AggregationStage => {
@@ -84,7 +88,9 @@ export const constructInitialMatchStageBasedOnCardConfigurationForm = (
     },
   };
 
-  if (robotId) {
+  if (groupMachineIds && groupMachineIds.length > 0) {
+    matchStage.robot_id = { $in: groupMachineIds };
+  } else if (robotId) {
     matchStage.robot_id = robotId;
   }
 

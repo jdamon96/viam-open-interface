@@ -1,5 +1,3 @@
-// components/DataVisualizationCardConfigurationForm.tsx
-
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { constructInitialMatchStageBasedOnCardConfigurationForm } from "./DataVisualizationCard";
 import useGetViamRobotParts from "@/hooks/useGetViamRobotParts";
@@ -177,12 +175,14 @@ const DataVisualizationCardConfigurationForm: React.FC<
 
   /**
    * Construct and update agg pipeline initial $match stage whenever relevant form fields change.
+   * Updated to handle both single machine and group of machines selections.
    */
   useEffect(() => {
     if (
       !currentlySelectedLocation ||
       !currentlySelectedOrganization ||
-      !dataSourceRobotId
+      (activeTab === "singleMachine" && !dataSourceRobotId) ||
+      (activeTab === "groupOfMachines" && selectedGroupMachines.length === 0)
     )
       return;
 
@@ -190,15 +190,18 @@ const DataVisualizationCardConfigurationForm: React.FC<
       constructInitialMatchStageBasedOnCardConfigurationForm(
         currentlySelectedOrganization.id,
         currentlySelectedLocation.id,
-        dataSourceRobotId,
+        activeTab === "singleMachine" ? dataSourceRobotId : undefined,
+        activeTab === "groupOfMachines" ? selectedGroupMachines : undefined,
         card.dateRange,
         dataSource
       );
     setStages((prevStages) => [updatedInitMatchStage, ...prevStages.slice(1)]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
+    activeTab,
     dataSource,
     dataSourceRobotId,
+    selectedGroupMachines,
     visualizationType,
     currentlySelectedLocation,
     currentlySelectedOrganization,
@@ -426,7 +429,7 @@ const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
 
   const handleMachineChange = useCallback(
     (val: string) => {
-      const machine = locationMachines.find((robot) => robot.name === val);
+      const machine = locationMachines.find((robot) => robot.id === val);
       setMachineSource(machine);
       setDataSourceRobotId(machine?.id || "");
     },
@@ -448,7 +451,7 @@ const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
       <div className="space-y-2">
         <Label htmlFor="machineSource">Machine</Label>
         <Select
-          value={machineSource?.name || ""}
+          value={machineSource?.id || ""}
           onValueChange={handleMachineChange}
           required
         >
@@ -460,7 +463,7 @@ const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
           </SelectTrigger>
           <SelectContent>
             {machineOptions.map((robot) => (
-              <SelectItem key={robot.value} value={robot.label}>
+              <SelectItem key={robot.value} value={robot.value}>
                 {robot.label}
               </SelectItem>
             ))}
