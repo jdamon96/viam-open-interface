@@ -19,18 +19,19 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Option {
   value: string;
-  label: string;
+  label: React.ReactNode;
+  sublabel?: React.ReactNode;
 }
 
 interface SearchableMultiSelectProps {
   options: Option[];
   placeholder?: string;
   onChange?: (selected: string[]) => void;
-  selectedOptionIds: string[]; // Changed from initialSelectedOptionsIds
+  selectedOptionIds: string[];
+  loading?: boolean;
 }
 
 const SearchableMultiSelect: React.FC<SearchableMultiSelectProps> = ({
@@ -38,6 +39,7 @@ const SearchableMultiSelect: React.FC<SearchableMultiSelectProps> = ({
   placeholder = "Select options...",
   onChange,
   selectedOptionIds,
+  loading = false,
 }) => {
   const [open, setOpen] = React.useState(false);
 
@@ -68,9 +70,12 @@ const SearchableMultiSelect: React.FC<SearchableMultiSelectProps> = ({
           role="combobox"
           aria-expanded={open}
           className="w-full justify-between"
+          disabled={loading} // Disable button when loading
         >
           <div className="flex flex-wrap gap-2 w-full">
-            {selectedOptions.length > 0 ? (
+            {loading ? (
+              <span className="text-muted-foreground">Loading...</span>
+            ) : selectedOptions.length > 0 ? (
               selectedOptions.map((option) => (
                 <span
                   key={option.value}
@@ -86,35 +91,44 @@ const SearchableMultiSelect: React.FC<SearchableMultiSelectProps> = ({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="min-w-full p-0">
-        <Command className="w-full">
-          <CommandInput placeholder="Search..." className="w-full" />
-          <CommandEmpty>No options found.</CommandEmpty>
+      {!loading && (
+        <PopoverContent className="min-w-full p-0">
+          <Command className="w-full">
+            <CommandInput placeholder="Search..." className="w-full" />
+            <CommandEmpty>No options found.</CommandEmpty>
 
-          <CommandList>
-            <CommandGroup>
-              {options.map((option) => (
-                <CommandItem
-                  key={option.value}
-                  value={option.value}
-                  onSelect={() => handleSetValue(option.value)}
-                  className="cursor-pointer"
-                >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      selectedOptionIds.includes(option.value)
-                        ? "opacity-100"
-                        : "opacity-0"
-                    )}
-                  />
-                  {option.label}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
+            <CommandList>
+              <CommandGroup>
+                {options.map((option) => (
+                  <CommandItem
+                    key={option.value}
+                    value={option.value}
+                    onSelect={() => handleSetValue(option.value)}
+                    className="cursor-pointer"
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        selectedOptionIds.includes(option.value)
+                          ? "opacity-100"
+                          : "opacity-0"
+                      )}
+                    />
+                    <div className="flex flex-col items-start space-y-1 py-1">
+                      {option.label}
+                      {option.sublabel && (
+                        <span className="text-xs text-gray-700">
+                          {option.sublabel}
+                        </span>
+                      )}
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      )}
     </Popover>
   );
 };

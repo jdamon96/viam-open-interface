@@ -41,7 +41,11 @@ interface UseListViamOrganizationFragmentsResult {
 const useListViamOrganizationFragments =
   (): UseListViamOrganizationFragmentsResult => {
     const viamClientContext = useContext(ViamClientContext);
-    const { organizationFragments, setOrganizationFragments } = useAppStore();
+    const {
+      organizationFragments,
+      setOrganizationFragments,
+      setFragmentToMachinesMap,
+    } = useAppStore();
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<Error | undefined>(undefined);
 
@@ -150,12 +154,10 @@ const useListViamOrganizationFragments =
         setLoading(true);
         setError(undefined);
         setOrganizationFragments([]);
+        setFragmentToMachinesMap({}); // Reset the mapping
 
         try {
           const orgFragments = await getAllOrgFragments(orgId);
-
-          // const fragmentsInUseByOrgMachines =
-          //   await getAllFragmentsInUseByOrgMachines(orgId);
           const fragmentsInUseByOrgMachines =
             await getAllFragmentsInUseByLocationMachines(locId);
 
@@ -170,20 +172,45 @@ const useListViamOrganizationFragments =
             .map((id) =>
               allOrgAssociatedFragments.find((fragment) => fragment.id === id)
             )
-            .filter((fragment): fragment is Fragment => fragment !== undefined); // Filter out undefined values
+            .filter((fragment): fragment is Fragment => fragment !== undefined);
 
-          if (uniqueOrgAssociatedFragments.length > 0) {
-            setOrganizationFragments(uniqueOrgAssociatedFragments);
-          } else {
-            setOrganizationFragments([]);
+          // Build the fragment to machines mapping
+          const fragmentToMachinesMap: Record<string, string[]> = {};
+
+          // Fetch all machines associated with the location
+          const machines =
+            await viamClientContext?.client?.appClient?.listRobots(locId);
+
+          if (machines) {
+            for (const machine of machines) {
+              const machineFragments =
+                await viamClientContext?.client?.appClient?.listMachineFragments(
+                  machine.id
+                );
+              if (machineFragments) {
+                machineFragments.forEach((fragment: any) => {
+                  if (!fragmentToMachinesMap[fragment.id]) {
+                    fragmentToMachinesMap[fragment.id] = [];
+                  }
+                  fragmentToMachinesMap[fragment.id].push(machine.id);
+                });
+              }
+            }
           }
+
+          setOrganizationFragments(uniqueOrgAssociatedFragments);
+          setFragmentToMachinesMap(fragmentToMachinesMap);
         } catch (err: any) {
           setError(err);
         } finally {
           setLoading(false);
         }
       },
-      [viamClientContext.client?.appClient, setOrganizationFragments]
+      [
+        viamClientContext.client?.appClient,
+        setOrganizationFragments,
+        setFragmentToMachinesMap,
+      ]
     );
 
     return { loading, error, fetchFragmentsAndSetInAppStore };

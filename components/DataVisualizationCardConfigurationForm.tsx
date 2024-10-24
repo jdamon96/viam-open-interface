@@ -629,6 +629,17 @@ const GroupOfMachinesSelectionForm: React.FC<
           onMachinesSelected={handleMachinesSelectedFromFragment}
         />
       )}
+
+      {selectedMachines.length > 0 && (
+        <div className="mt-4">
+          <h3 className="text-lg font-medium">Selected Machines:</h3>
+          <ul className="list-disc list-inside">
+            {selectedMachines.map((machineId) => (
+              <li key={machineId}>{machineId}</li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 };

@@ -13,6 +13,11 @@ interface SearchableMachineByFragmentSelectProps {
   fragmentsLoading?: boolean;
   onMachinesSelected: (selectedMachines: string[]) => void;
 }
+// Utility function to parse fragment ID from the fragment value
+const parseFragmentId = (fragmentValue: string): string => {
+  const parts = fragmentValue.split(".");
+  return parts[parts.length - 1];
+};
 
 const SearchableMachineByFragmentSelect: React.FC<
   SearchableMachineByFragmentSelectProps
@@ -21,18 +26,27 @@ const SearchableMachineByFragmentSelect: React.FC<
   const [selectedFragmentIds, setSelectedFragmentIds] = useState<string[]>([]);
 
   // Extract the single selected fragment ID
-  const selectedFragmentId = selectedFragmentIds[0] || "";
+  const selectedFragmentId = parseFragmentId(selectedFragmentIds[0] || "");
 
   // Use the custom hook to fetch machines associated with the selected fragment
-  const { loading, error, machines } =
-    useMachinesByFragment(selectedFragmentId);
+  const {
+    loading: machinesByFragmentLoading,
+    error,
+    machines,
+  } = useMachinesByFragment(selectedFragmentId);
 
   // Transform fragments into options for the Select component
   const fragmentOptions = useMemo(
     () =>
       fragments.map((fragment) => ({
-        value: fragment.name + fragment.id,
+        value: fragment.name + "." + fragment.id, // adding fragment.name is a hack to let search work, but means we need to remove it when getting the value
         label: fragment.name,
+        sublabel: (
+          <span className="text-xs text-gray-700">
+            {fragment.robotPartCount} configured{" "}
+            {fragment.robotPartCount === 1 ? "machine" : "machines"}
+          </span>
+        ),
       })),
     [fragments]
   );
@@ -56,8 +70,15 @@ const SearchableMachineByFragmentSelect: React.FC<
   useEffect(() => {
     if (selectedFragmentId) {
       const machineIds = machines.map((machine) => machine.id);
+      console.log(
+        "Setting selected machines for selected fragment id " +
+          selectedFragmentId +
+          ":",
+        machineIds
+      );
       onMachinesSelected(machineIds);
     } else {
+      console.log("Clearing selected machines.");
       onMachinesSelected([]);
     }
   }, [machines, selectedFragmentId, onMachinesSelected]);
@@ -70,25 +91,21 @@ const SearchableMachineByFragmentSelect: React.FC<
         placeholder="Search and select a fragment..."
         onChange={handleFragmentChange}
         selectedOptionIds={selectedFragmentIds}
+        loading={fragmentsLoading}
       />
-      {fragmentsLoading && (
-        <p className="text-blue-500">Loading fragments...</p>
-      )}
+
       {error && (
         <p className="text-red-500">
           Error: {error.message || "Failed to load machines."}
         </p>
       )}
-      {!loading && selectedFragmentId && (
+      {/* {!loading && selectedFragmentId && (
         <div className="mt-2">
           <p className="text-sm text-gray-600">
             {machines.length} machine(s) associated with the selected fragment.
           </p>
         </div>
-      )}
-      {loading && selectedFragmentId && (
-        <p className="text-blue-500">Loading machines...</p>
-      )}
+      )} */}
     </div>
   );
 };
