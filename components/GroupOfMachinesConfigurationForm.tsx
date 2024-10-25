@@ -8,8 +8,10 @@ import SearchableMachineByFragmentSelect from "./SearchableMachineByFragmentSele
 
 import { Robot } from "@/hooks/useListViamRobots";
 import { Fragment } from "@/hooks/useListViamOrganizationFragments";
+import { DataCard } from "@/store/zustand";
 
 interface GroupOfMachinesConfigurationFormProps {
+  card: DataCard;
   locationMachines: Robot[];
   selectedGroupMachinesIds: string[];
   onMachinesSelected: (selectedMachines: string[]) => void;
@@ -21,6 +23,7 @@ interface GroupOfMachinesConfigurationFormProps {
 const GroupOfMachinesConfigurationForm: React.FC<
   GroupOfMachinesConfigurationFormProps
 > = ({
+  card,
   locationMachines,
   selectedGroupMachinesIds,
   onMachinesSelected,
@@ -28,14 +31,17 @@ const GroupOfMachinesConfigurationForm: React.FC<
   fragments,
   fragmentsLoading,
 }) => {
+  console.log(card?.groupFragment);
   const [selectionType, setSelectionType] = useState<"specific" | "fragment">(
-    "specific"
+    card?.groupFragment !== null || card?.groupFragment !== undefined
+      ? "fragment"
+      : "specific"
   );
   const [selectedMachines, setSelectedMachines] = useState<string[]>(
     selectedGroupMachinesIds
   );
   const [selectedFragmentId, setSelectedFragmentId] = useState<string | null>(
-    null
+    card?.groupFragment ? card.groupFragment : null
   );
 
   // Memoize machine options
@@ -61,12 +67,11 @@ const GroupOfMachinesConfigurationForm: React.FC<
   );
 
   // Handler for fragment selection
-  const handleMachinesSelectedFromFragment = useCallback(
-    (selectedMachinesIds: string[]) => {
+  const handleGroupOfMachinesFragmentSelection = useCallback(
+    (fragmentId: string | null, selectedMachinesIds: string[]) => {
+      onFragmentSelected(fragmentId);
       setSelectedMachines(selectedMachinesIds);
       onMachinesSelected(selectedMachinesIds);
-      // Optionally, set the selected fragment ID
-      // Here, you might want to set it based on some logic
     },
     [onMachinesSelected]
   );
@@ -105,7 +110,8 @@ const GroupOfMachinesConfigurationForm: React.FC<
         <SearchableMachineByFragmentSelect
           fragments={fragments}
           fragmentsLoading={fragmentsLoading}
-          onMachinesSelected={handleMachinesSelectedFromFragment}
+          onFragmentSelected={handleGroupOfMachinesFragmentSelection}
+          initSelectedFragmentId={selectedFragmentId}
         />
       )}
 

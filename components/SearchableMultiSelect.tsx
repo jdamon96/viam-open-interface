@@ -22,7 +22,7 @@ import {
 
 interface Option {
   value: string;
-  label: React.ReactNode;
+  label: string;
   sublabel?: React.ReactNode;
 }
 
@@ -102,7 +102,7 @@ const SearchableMultiSelect: React.FC<SearchableMultiSelectProps> = ({
                 {options.map((option) => (
                   <CommandItem
                     key={option.value}
-                    value={option.value}
+                    value={option.label}
                     onSelect={() => handleSetValue(option.value)}
                     className="cursor-pointer"
                   >

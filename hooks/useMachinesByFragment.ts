@@ -1,5 +1,5 @@
-// Create a new hook, e.g., useMachinesByFragment.ts
-import { useContext, useState, useEffect } from "react";
+// hooks/useMachinesByFragment.ts
+import { useContext, useState, useCallback } from "react";
 import useAppStore from "@/store/zustand";
 import { ViamClientContext } from "@/components/ViamClientProvider";
 import { ViamClient } from "@viamrobotics/sdk";
@@ -10,54 +10,46 @@ interface Machine {
   // ... other machine properties
 }
 
-interface UseMachinesByFragmentResult {
-  loading: boolean;
-  error?: Error;
-  machines: Machine[];
-}
-
-const useMachinesByFragment = (
-  fragmentId: string
-): UseMachinesByFragmentResult => {
+const useMachinesByFragment = () => {
   const { fragmentToMachinesMap } = useAppStore();
   const viamClientContext = useContext(ViamClientContext);
-  const [machines, setMachines] = useState<Machine[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<Error | undefined>(undefined);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchMachines = async () => {
+  // Memoize fetchMachinesByFragment with useCallback
+  const fetchMachinesByFragment = useCallback(
+    async (fragmentId: string): Promise<Machine[]> => {
       setLoading(true);
-      setError(undefined);
-      setMachines([]);
-
       try {
         const machineIds = fragmentToMachinesMap[fragmentId] || [];
         const fetchedMachines: Machine[] = [];
 
-        for (const machineId of machineIds) {
+        // Fetch machines concurrently for better performance
+        const machinePromises = machineIds.map(async (machineId) => {
           const machine = await viamClientContext.client?.appClient?.getRobot(
             machineId
           );
+          return machine;
+        });
+
+        const machines = await Promise.all(machinePromises);
+        machines.forEach((machine) => {
           if (machine) {
             fetchedMachines.push(machine);
           }
-        }
+        });
 
-        setMachines(fetchedMachines);
-      } catch (err: any) {
-        setError(err);
+        return fetchedMachines;
+      } catch (error) {
+        console.error("Error fetching machines:", error);
+        return [];
       } finally {
         setLoading(false);
       }
-    };
+    },
+    [fragmentToMachinesMap, viamClientContext.client] // Dependencies
+  );
 
-    if (fragmentId) {
-      fetchMachines();
-    }
-  }, [fragmentId, fragmentToMachinesMap, viamClientContext.client?.appClient]);
-
-  return { loading, error, machines };
+  return { fetchMachinesByFragment, loading };
 };
 
 export default useMachinesByFragment;

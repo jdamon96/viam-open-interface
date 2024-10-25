@@ -397,11 +397,11 @@ const DataVisualizationCardConfigurationForm: React.FC<
             </TabsContent>
             <TabsContent value="groupOfMachines">
               <GroupOfMachinesConfigurationForm
+                card={card}
                 locationMachines={locationMachines}
                 selectedGroupMachinesIds={selectedGroupMachines}
                 onMachinesSelected={handleMachinesSelected}
                 onFragmentSelected={handleFragmentSelected}
-                //@ts-ignore
                 fragments={organizationFragments}
                 fragmentsLoading={fragmentsLoading}
               />
