@@ -287,156 +287,156 @@ const DataVisualizationCardConfigurationForm: React.FC<
       ) : (
         <form
           onSubmit={handleSubmit}
-          className="p-4 flex flex-col space-y-6 min-w-[410px] overflow-auto"
+          className="p-4 flex flex-col space-y-6 min-w-[410px] bg-gray-50"
         >
-          {/* Card Title */}
-          <div className="space-y-2">
-            <Label htmlFor="title">Card Title</Label>
-            <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-            />
-          </div>
+          <div className="flex flex-col space-y-6 overflow-auto max-h-[512px]">
+            {/* Card Title */}
+            <div className="space-y-2">
+              <Label htmlFor="title">Card Title</Label>
+              <Input
+                id="title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+              />
+            </div>
+            {/* Visualization Type */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="visualizationType">Visualization Type</Label>
 
-          {/* Visualization Type */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="visualizationType">Visualization Type</Label>
-
-              {visualizationType && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant={"ghost"}
-                        className="text-xs bg-yellow-100 text-yellow-700 hover:bg-yellow-200 hover:text-yellow-800 hover:cursor-pointer rounded px-3 py-1 flex items-center space-x-1"
-                      >
-                        <Info size={16} className="text-yellow-700" />
-                        <span className="font-semibold">
-                          {" "}
-                          Expected data format
-                        </span>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent className="px-0 py-0">
-                      <div className="flex flex-col">
-                        <div className="p-3 border-b border-gray-200 text-sm italic">
-                          Example input data format for a{" "}
+                {visualizationType && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant={"ghost"}
+                          className="text-xs bg-yellow-100 text-yellow-700 hover:bg-yellow-200 hover:text-yellow-800 hover:cursor-pointer rounded px-3 py-1 flex items-center space-x-1"
+                        >
+                          <Info size={16} className="text-yellow-700" />
                           <span className="font-semibold">
-                            {visualizationType}
-                          </span>{" "}
-                          data visualization.
+                            {" "}
+                            Expected data format
+                          </span>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="px-0 py-0">
+                        <div className="flex flex-col">
+                          <div className="p-3 border-b border-gray-200 text-sm italic">
+                            Example input data format for a{" "}
+                            <span className="font-semibold">
+                              {visualizationType}
+                            </span>{" "}
+                            data visualization.
+                          </div>
+                          <JsonCodeEditor
+                            value={JSON.stringify(
+                              getVisualizationTypeExpectedDataFormat(
+                                visualizationType
+                              ),
+                              null,
+                              2
+                            )}
+                            onChange={() => {}}
+                            minHeight="min-h-[256px]"
+                            maxHeight="max-h-[256px]"
+                            readOnly={true}
+                          />
                         </div>
-                        <JsonCodeEditor
-                          value={JSON.stringify(
-                            getVisualizationTypeExpectedDataFormat(
-                              visualizationType
-                            ),
-                            null,
-                            2
-                          )}
-                          onChange={() => {}}
-                          minHeight="min-h-[256px]"
-                          maxHeight="max-h-[256px]"
-                          readOnly={true}
-                        />
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
-            </div>
-            <Select
-              value={visualizationType}
-              onValueChange={setVisualizationType}
-              required
-            >
-              <SelectTrigger id="visualizationType">
-                <SelectValue placeholder="Select a visualization type" />
-              </SelectTrigger>
-              <SelectContent>
-                {visualizationTypes.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {type}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <Label>Data Source</Label>
-          <Tabs
-            value={activeTab}
-            onValueChange={(value) =>
-              setActiveTab(value as "singleMachine" | "groupOfMachines")
-            }
-            className="w-full"
-          >
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="singleMachine">Single Machine</TabsTrigger>
-              <TabsTrigger value="groupOfMachines">
-                Group of Machines
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="singleMachine">
-              <SingleMachineConfigurationForm
-                title={title}
-                setTitle={setTitle}
-                dataSource={dataSource}
-                setDataSource={setDataSource}
-                machineSource={machineSource}
-                setMachineSource={setMachineSource}
-                setDataSourceRobotId={setDataSourceRobotId}
-                locationMachines={locationMachines}
-                dataCollectingComponents={dataCollectingComponents}
-                stages={stages}
-                toggleQueryBuilder={toggleQueryBuilder}
-              />
-            </TabsContent>
-            <TabsContent value="groupOfMachines">
-              <GroupOfMachinesConfigurationForm
-                card={card}
-                locationMachines={locationMachines}
-                selectedGroupMachinesIds={selectedGroupMachines}
-                onMachinesSelected={handleMachinesSelected}
-                onFragmentSelected={handleFragmentSelected}
-                fragments={organizationFragments}
-                fragmentsLoading={fragmentsLoading}
-              />
-            </TabsContent>
-          </Tabs>
-
-          {/* Data Aggregation Pipeline */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label>Data Aggregation Pipeline</Label>
-
-              <Button
-                variant={"ghost"}
-                onClick={() => toggleQueryBuilder(true)}
-                className="text-xs border border-gray-300 hover:bg-gray-100 hover:cursor-pointer rounded px-3 py-1 flex items-center space-x-1"
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+              </div>
+              <Select
+                value={visualizationType}
+                onValueChange={setVisualizationType}
+                required
               >
-                <Wrench size={12} className="text-gray-700" />
-                <span>Configure</span>
-              </Button>
+                <SelectTrigger id="visualizationType">
+                  <SelectValue placeholder="Select a visualization type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {visualizationTypes.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            <div className="flex items-center space-x-2 overflow-x-auto py-2">
-              {stages.map((stage, index) => (
-                <React.Fragment key={index}>
-                  <StageBlock
-                    stage={stage}
-                    onClick={() => toggleQueryBuilder(true)}
-                  />
-                  {index < stages.length - 1 && (
-                    <ArrowRight className="text-gray-400" />
-                  )}
-                </React.Fragment>
-              ))}
+
+            <Label>Data Source</Label>
+            <Tabs
+              value={activeTab}
+              onValueChange={(value) =>
+                setActiveTab(value as "singleMachine" | "groupOfMachines")
+              }
+              className="w-full"
+            >
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="singleMachine">Single Machine</TabsTrigger>
+                <TabsTrigger value="groupOfMachines">
+                  Group of Machines
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="singleMachine">
+                <SingleMachineConfigurationForm
+                  title={title}
+                  setTitle={setTitle}
+                  dataSource={dataSource}
+                  setDataSource={setDataSource}
+                  machineSource={machineSource}
+                  setMachineSource={setMachineSource}
+                  setDataSourceRobotId={setDataSourceRobotId}
+                  locationMachines={locationMachines}
+                  dataCollectingComponents={dataCollectingComponents}
+                  stages={stages}
+                  toggleQueryBuilder={toggleQueryBuilder}
+                />
+              </TabsContent>
+              <TabsContent value="groupOfMachines">
+                <GroupOfMachinesConfigurationForm
+                  card={card}
+                  locationMachines={locationMachines}
+                  selectedGroupMachinesIds={selectedGroupMachines}
+                  onMachinesSelected={handleMachinesSelected}
+                  onFragmentSelected={handleFragmentSelected}
+                  fragments={organizationFragments}
+                  fragmentsLoading={fragmentsLoading}
+                />
+              </TabsContent>
+            </Tabs>
+
+            {/* Data Aggregation Pipeline */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>Data Aggregation Pipeline</Label>
+
+                <Button
+                  variant={"ghost"}
+                  onClick={() => toggleQueryBuilder(true)}
+                  className="hover:bg-blue-200 bg-blue-100 text-blue-500 hover:text-blue-600 hover:cursor-pointer rounded px-3 py-1 flex items-center space-x-1"
+                >
+                  <Wrench size={16} className="text-blue-500 mr-1" />
+                  <span>Configure</span>
+                </Button>
+              </div>
+              <div className="flex items-center space-x-2 overflow-x-auto py-2">
+                {stages.map((stage, index) => (
+                  <React.Fragment key={index}>
+                    <StageBlock
+                      stage={stage}
+                      onClick={() => toggleQueryBuilder(true)}
+                    />
+                    {index < stages.length - 1 && (
+                      <ArrowRight className="text-gray-400" />
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
             </div>
           </div>
-
           {/* Save Configuration Button */}
           <Button type="submit">Save Configuration</Button>
         </form>
