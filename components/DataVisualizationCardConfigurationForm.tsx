@@ -1,8 +1,10 @@
+// DataVisualizationCardConfigurationForm.tsx
+
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { constructInitialMatchStageBasedOnCardConfigurationForm } from "./DataVisualizationCard";
 import useGetViamRobotParts from "@/hooks/useGetViamRobotParts";
 import { Robot } from "@/hooks/useListViamRobots";
-import { cn, parseComponentsWithDataManager } from "@/lib/utils";
+import { parseComponentsWithDataManager } from "@/lib/utils";
 import { Label } from "./ui/label";
 import {
   Select,
@@ -12,32 +14,13 @@ import {
   SelectValue,
 } from "./ui/select";
 import { Button } from "./ui/button";
-import {
-  ArrowRight,
-  Braces,
-  Check,
-  ChevronsUpDown,
-  Info,
-  Plug,
-  Wrench,
-} from "lucide-react";
+import { ArrowRight, Info, Wrench } from "lucide-react";
 import useAppStore, { DataCard } from "@/store/zustand";
 import useViamGetTabularDataByMQL from "@/hooks/useViamGetTabularDataByMQL";
 import QueryBuilder from "./QueryBuilder";
 import { Input } from "./ui/input";
 import { AggregationStage } from "@/types/AggregationStage";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "./ui/command";
-import { Badge } from "./ui/badge";
-import SearchableMultiSelect from "@/components/SearchableMultiSelect";
 import {
   Tooltip,
   TooltipContent,
@@ -45,10 +28,42 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import JsonCodeEditor from "./JsonEditor";
-import SearchableMachineByFragmentSelect from "./SearchableMachineByFragmentSelect";
-import useListViamOrganizationFragments, {
-  Fragment,
-} from "@/hooks/useListViamOrganizationFragments";
+
+import SingleMachineConfigurationForm from "./SingleMachineConfigurationForm";
+import GroupOfMachinesConfigurationForm from "./GroupOfMachinesConfigurationForm";
+import useListViamOrganizationFragments from "@/hooks/useListViamOrganizationFragments";
+
+interface StageBlockProps {
+  stage: AggregationStage;
+  onClick: () => void;
+}
+
+const StageBlock: React.FC<StageBlockProps> = ({ stage, onClick }) => {
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            onClick={onClick}
+            className="flex items-center justify-center px-4 py-2 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 cursor-pointer transition-colors duration-200"
+            variant={"secondary"}
+          >
+            {stage.operator}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent className="px-0 py-0">
+          <JsonCodeEditor
+            value={JSON.stringify(stage.definition, null, 2)}
+            onChange={() => {}}
+            minHeight="min-h-[256px]"
+            maxHeight="max-h-[256px]"
+            readOnly={true} // only readOnly if locked
+          />
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+};
 
 const visualizationTypes = ["Stacked Bar Chart", "Line Chart", "Table"];
 
@@ -249,7 +264,7 @@ const DataVisualizationCardConfigurationForm: React.FC<
     ]
   );
 
-  // Handlers for GroupOfMachinesSelectionForm
+  // Handlers for GroupOfMachinesConfigurationForm
   const handleMachinesSelected = useCallback((selectedMachines: string[]) => {
     setSelectedGroupMachines(selectedMachines);
   }, []);
@@ -296,7 +311,6 @@ const DataVisualizationCardConfigurationForm: React.FC<
                     <TooltipTrigger asChild>
                       <Button
                         variant={"ghost"}
-                        // onClick={() => toggleQueryBuilder(true)}
                         className="text-xs bg-yellow-100 text-yellow-700 hover:bg-yellow-200 hover:text-yellow-800 hover:cursor-pointer rounded px-3 py-1 flex items-center space-x-1"
                       >
                         <Info size={16} className="text-yellow-700" />
@@ -326,7 +340,7 @@ const DataVisualizationCardConfigurationForm: React.FC<
                           onChange={() => {}}
                           minHeight="min-h-[256px]"
                           maxHeight="max-h-[256px]"
-                          readOnly={true} // only readOnly if locked
+                          readOnly={true}
                         />
                       </div>
                     </TooltipContent>
@@ -367,7 +381,7 @@ const DataVisualizationCardConfigurationForm: React.FC<
               </TabsTrigger>
             </TabsList>
             <TabsContent value="singleMachine">
-              <ConfigurationForm
+              <SingleMachineConfigurationForm
                 title={title}
                 setTitle={setTitle}
                 dataSource={dataSource}
@@ -382,7 +396,7 @@ const DataVisualizationCardConfigurationForm: React.FC<
               />
             </TabsContent>
             <TabsContent value="groupOfMachines">
-              <GroupOfMachinesSelectionForm
+              <GroupOfMachinesConfigurationForm
                 locationMachines={locationMachines}
                 selectedGroupMachinesIds={selectedGroupMachines}
                 onMachinesSelected={handleMachinesSelected}
@@ -434,266 +448,8 @@ const DataVisualizationCardConfigurationForm: React.FC<
 export default DataVisualizationCardConfigurationForm;
 
 /**
- * ConfigurationForm Component
- * Refactored <form /> and its contents into a separate functional component for better readability.
+ * Utility function to get expected data format for each visualization type
  */
-
-interface ConfigurationFormProps {
-  title: string;
-  setTitle: React.Dispatch<React.SetStateAction<string>>;
-  dataSource: string;
-  setDataSource: React.Dispatch<React.SetStateAction<string>>;
-  machineSource: Robot | undefined;
-  setMachineSource: React.Dispatch<React.SetStateAction<Robot | undefined>>;
-  setDataSourceRobotId: React.Dispatch<React.SetStateAction<string>>;
-  locationMachines: Robot[];
-  dataCollectingComponents: any;
-  stages: AggregationStage[];
-  toggleQueryBuilder: (value: boolean) => void;
-}
-
-const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
-  title,
-  setTitle,
-  dataSource,
-  setDataSource,
-  machineSource,
-  setMachineSource,
-  setDataSourceRobotId,
-  locationMachines,
-  dataCollectingComponents,
-  stages,
-  toggleQueryBuilder,
-}) => {
-  // Memoize machine options to prevent unnecessary recalculations
-  const machineOptions = useMemo(
-    () =>
-      locationMachines.map((machine) => ({
-        value: machine.id,
-        label: machine.name,
-      })),
-    [locationMachines]
-  );
-
-  const handleMachineChange = useCallback(
-    (val: string) => {
-      const machine = locationMachines.find((robot) => robot.id === val);
-      setMachineSource(machine);
-      setDataSourceRobotId(machine?.id || "");
-    },
-    [locationMachines, setMachineSource, setDataSourceRobotId]
-  );
-
-  const dataSourceOptions = useMemo(
-    () =>
-      dataCollectingComponents?.map((component: any, idx: number) => ({
-        value: component.name,
-        label: component.name,
-      })) || [],
-    [dataCollectingComponents]
-  );
-
-  return (
-    <div className="py-4 flex flex-col space-y-6 min-w-[410px] overflow-auto">
-      {/* Machine Selection */}
-      <div className="space-y-2">
-        <Label htmlFor="machineSource">Machine</Label>
-        <Select
-          value={machineSource?.id || ""}
-          onValueChange={handleMachineChange}
-          required
-        >
-          <SelectTrigger id="machineSource">
-            <SelectValue
-              placeholder="Select a machine"
-              defaultValue={machineSource?.name || ""}
-            />
-          </SelectTrigger>
-          <SelectContent>
-            {machineOptions.map((robot) => (
-              <SelectItem key={robot.value} value={robot.value}>
-                {robot.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Data Source Selection */}
-      <div className="space-y-2">
-        <Label htmlFor="dataSource">Data Source</Label>
-        <Select
-          value={dataSource}
-          onValueChange={(val) => setDataSource(val)}
-          required
-          disabled={!dataCollectingComponents}
-        >
-          <SelectTrigger id="dataSource">
-            <SelectValue placeholder="Select a data source" />
-          </SelectTrigger>
-          <SelectContent>
-            {dataSourceOptions.map((dataCollectingComponent: any, idx: any) => (
-              <SelectItem
-                key={`${dataCollectingComponent.value}-${idx}`}
-                value={dataCollectingComponent.value}
-              >
-                {dataCollectingComponent.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-    </div>
-  );
-};
-
-// StageBlock Component
-interface StageBlockProps {
-  stage: AggregationStage;
-  onClick: () => void;
-}
-
-const StageBlock: React.FC<StageBlockProps> = ({ stage, onClick }) => {
-  return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            onClick={onClick}
-            className="flex items-center justify-center px-4 py-2 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 cursor-pointer transition-colors duration-200"
-            variant={"secondary"}
-          >
-            {stage.operator}
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent className="px-0 py-0">
-          <JsonCodeEditor
-            value={JSON.stringify(stage.definition, null, 2)}
-            onChange={() => {}}
-            minHeight="min-h-[256px]"
-            maxHeight="max-h-[256px]"
-            readOnly={true} // only readOnly if locked
-          />
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
-};
-
-// GroupOfMachinesSelectionForm Component
-interface GroupOfMachinesSelectionFormProps {
-  locationMachines: Robot[];
-  selectedGroupMachinesIds: string[];
-  onMachinesSelected: (selectedMachines: string[]) => void;
-  onFragmentSelected: (selectedFragmentId: string | null) => void;
-  fragments: Fragment[];
-  fragmentsLoading?: boolean;
-}
-
-const GroupOfMachinesSelectionForm: React.FC<
-  GroupOfMachinesSelectionFormProps
-> = ({
-  locationMachines,
-  selectedGroupMachinesIds,
-  onMachinesSelected,
-  onFragmentSelected,
-  fragments,
-  fragmentsLoading,
-}) => {
-  const [selectionType, setSelectionType] = useState<"specific" | "fragment">(
-    "specific"
-  );
-  const [selectedMachines, setSelectedMachines] = useState<string[]>(
-    selectedGroupMachinesIds
-  );
-  const [selectedFragmentId, setSelectedFragmentId] = useState<string | null>(
-    null
-  );
-
-  // Memoize machine options
-  const machines = useMemo(
-    () =>
-      locationMachines.map((machine) => ({
-        value: machine.id,
-        label: machine.name,
-      })),
-    [locationMachines]
-  );
-
-  // Memoize handler to prevent re-renders
-  const handleSelectionTypeChange = useCallback(
-    (value: "specific" | "fragment") => {
-      setSelectionType(value);
-      setSelectedMachines([]);
-      onMachinesSelected([]);
-      setSelectedFragmentId(null);
-      onFragmentSelected(null);
-    },
-    [onMachinesSelected, onFragmentSelected]
-  );
-
-  // Handler for fragment selection
-  const handleMachinesSelectedFromFragment = useCallback(
-    (selectedMachinesIds: string[]) => {
-      setSelectedMachines(selectedMachinesIds);
-      onMachinesSelected(selectedMachinesIds);
-      // Optionally, set the selected fragment ID
-      // Here, you might want to set it based on some logic
-    },
-    [onMachinesSelected]
-  );
-
-  return (
-    <div className="w-full max-w-md space-y-6 py-4">
-      <RadioGroup
-        value={selectionType}
-        onValueChange={handleSelectionTypeChange}
-      >
-        <div className="flex items-center space-x-2">
-          <RadioGroupItem value="specific" id="specific" />
-          <Label htmlFor="specific">Choose specific machines</Label>
-        </div>
-        <div className="flex items-center space-x-2">
-          <RadioGroupItem value="fragment" id="fragment" />
-          <Label htmlFor="fragment" className="">
-            Choose machines by configuration fragment
-          </Label>
-        </div>
-      </RadioGroup>
-
-      {selectionType === "specific" && (
-        <SearchableMultiSelect
-          options={machines}
-          placeholder="Select machines..."
-          onChange={(selected) => {
-            setSelectedMachines(selected);
-            onMachinesSelected(selected);
-          }}
-          selectedOptionIds={selectedGroupMachinesIds}
-        />
-      )}
-
-      {selectionType === "fragment" && (
-        <SearchableMachineByFragmentSelect
-          fragments={fragments}
-          fragmentsLoading={fragmentsLoading}
-          onMachinesSelected={handleMachinesSelectedFromFragment}
-        />
-      )}
-
-      {selectedMachines.length > 0 && (
-        <div className="mt-4">
-          <Label>Selected Machines:</Label>
-          <p className="text-xs">
-            {selectedMachines.length} machine(s) selected
-          </p>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// Utility function to get expected data format for each visualization type
 const getVisualizationTypeExpectedDataFormat = (visualizationType: string) => {
   console.log(`Visualization Type: ${visualizationType}`);
   switch (visualizationType) {
