@@ -414,12 +414,11 @@ const DataVisualizationCardConfigurationForm: React.FC<
                 <Label>Data Aggregation Pipeline</Label>
 
                 <Button
-                  variant={"ghost"}
+                  variant={"outline"}
                   onClick={() => toggleQueryBuilder(true)}
-                  className="hover:bg-blue-200 bg-blue-100 text-blue-500 hover:text-blue-600 hover:cursor-pointer rounded px-3 py-1 flex items-center space-x-1"
+                  className="hover:bg-gray-200 bg-white text-gray-500 hover:text-gray-600 hover:cursor-pointer rounded px-3 py-1 flex items-center space-x-1"
                 >
-                  <Wrench size={16} className="text-blue-500 mr-1" />
-                  <span>Configure</span>
+                  <Wrench size={16} className="text-gray-500 mr-1" />
                 </Button>
               </div>
               <div className="flex items-center space-x-2 overflow-x-auto py-2">
