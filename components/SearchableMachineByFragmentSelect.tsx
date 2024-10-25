@@ -94,7 +94,7 @@ const SearchableMachineByFragmentSelect: React.FC<
   );
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 max-w-md">
       <Label>Select a Configuration Fragment</Label>
       <SearchableMultiSelect
         options={fragmentOptions}

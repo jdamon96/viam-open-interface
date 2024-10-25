@@ -9,6 +9,7 @@ import SearchableMachineByFragmentSelect from "./SearchableMachineByFragmentSele
 import { Robot } from "@/hooks/useListViamRobots";
 import { Fragment } from "@/hooks/useListViamOrganizationFragments";
 import { DataCard } from "@/store/zustand";
+import { Badge } from "./ui/badge";
 
 interface GroupOfMachinesConfigurationFormProps {
   card: DataCard;
@@ -77,7 +78,7 @@ const GroupOfMachinesConfigurationForm: React.FC<
   );
 
   return (
-    <div className="w-full max-w-md space-y-6 py-4">
+    <div className="w-full space-y-6 py-4">
       <RadioGroup
         value={selectionType}
         onValueChange={handleSelectionTypeChange}
@@ -117,10 +118,23 @@ const GroupOfMachinesConfigurationForm: React.FC<
 
       {selectedMachines.length > 0 && (
         <div className="mt-4">
-          <Label>Selected Machines:</Label>
-          <p className="text-xs">
-            {selectedMachines.length} machine(s) selected
-          </p>
+          <Label>Selected Machines ({selectedMachines.length}):</Label>
+          <div className="flex flex-wrap space-x-2 w-full items-center justify-start mt-2">
+            {selectedMachines.slice(0, 10).map((machine) => (
+              <Badge
+                key={machine}
+                variant="outline"
+                className="mb-2 font-normal"
+              >
+                {machine}
+              </Badge>
+            ))}
+            {selectedMachines.length > 10 && (
+              <Badge variant="outline" className="mb-2 font-normal">
+                +{selectedMachines.length - 10} more
+              </Badge>
+            )}
+          </div>
         </div>
       )}
     </div>
