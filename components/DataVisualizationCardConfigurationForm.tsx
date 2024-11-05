@@ -287,9 +287,9 @@ const DataVisualizationCardConfigurationForm: React.FC<
       ) : (
         <form
           onSubmit={handleSubmit}
-          className="p-4 flex flex-col space-y-6 min-w-[410px] bg-gray-50"
+          className="pb-4 flex flex-col space-y-6 min-w-[410px] bg-gray-50 border border-gray-200"
         >
-          <div className="flex flex-col space-y-6 overflow-auto max-h-[512px]">
+          <div className="px-7 py-4 flex flex-col space-y-6 overflow-auto max-h-[512px] border-b border-gray-200">
             {/* Card Title */}
             <div className="space-y-2">
               <Label htmlFor="title">Card Title</Label>
@@ -307,18 +307,15 @@ const DataVisualizationCardConfigurationForm: React.FC<
 
                 {visualizationType && (
                   <TooltipProvider>
-                    <Tooltip>
+                    <Tooltip delayDuration={100}>
                       <TooltipTrigger asChild>
-                        <Button
-                          variant={"ghost"}
-                          className="text-xs bg-yellow-100 text-yellow-700 hover:bg-yellow-200 hover:text-yellow-800 hover:cursor-pointer rounded px-3 py-1 flex items-center space-x-1"
-                        >
+                        <div className="text-xs bg-yellow-100 text-yellow-700 hover:bg-yellow-200 hover:text-yellow-800 hover:cursor-pointer rounded px-3 py-1 flex items-center space-x-1">
                           <Info size={16} className="text-yellow-700" />
                           <span className="font-semibold">
                             {" "}
                             Expected data format
                           </span>
-                        </Button>
+                        </div>
                       </TooltipTrigger>
                       <TooltipContent className="px-0 py-0">
                         <div className="flex flex-col">
@@ -410,15 +407,16 @@ const DataVisualizationCardConfigurationForm: React.FC<
 
             {/* Data Aggregation Pipeline */}
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-start space-x-2">
                 <Label>Data Aggregation Pipeline</Label>
 
                 <Button
-                  variant={"outline"}
+                  variant={"ghost"}
+                  size={"sm"}
                   onClick={() => toggleQueryBuilder(true)}
-                  className="hover:bg-gray-200 bg-white text-gray-500 hover:text-gray-600 hover:cursor-pointer rounded px-3 py-1 flex items-center space-x-1"
+                  className="text-xs hover:bg-gray-300 bg-gray-200 text-gray-700 hover:text-gray-600 hover:cursor-pointer rounded px-5 flex items-center space-x-1 py-1"
                 >
-                  <Wrench size={16} className="text-gray-500 mr-1" />
+                  Edit Pipeline
                 </Button>
               </div>
               <div className="flex items-center space-x-2 overflow-x-auto py-2">
@@ -436,8 +434,12 @@ const DataVisualizationCardConfigurationForm: React.FC<
               </div>
             </div>
           </div>
-          {/* Save Configuration Button */}
-          <Button type="submit">Save Configuration</Button>
+          <div className="w-full px-2">
+            {/* Save Configuration Button */}
+            <Button type="submit" className="w-full">
+              Save Configuration
+            </Button>
+          </div>
         </form>
       )}
     </>

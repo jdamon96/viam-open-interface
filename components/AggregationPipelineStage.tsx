@@ -44,12 +44,14 @@ const AggregationPipelineStage: React.FC<AggregationPipelineStageProps> = ({
   locked,
   goBack, // Destructure goBack prop
 }) => {
-  const { operator, body } = {
-    operator: stage.operator,
-    body: stage.definition,
-  };
-
-  const [jsonData, setJsonData] = useState(JSON.stringify(body, null, 2));
+  const { operator, definition } = stage;
+  console.log("definition", definition);
+  const [jsonDataAsString, setJsonDataAsString] = useState(
+    typeof definition === "string"
+      ? definition
+      : JSON.stringify(definition, null, 2)
+  );
+  console.log("jsonDataAsString", jsonDataAsString);
 
   const handleOperatorChange = (val: string) => {
     if (!locked) {
@@ -59,7 +61,7 @@ const AggregationPipelineStage: React.FC<AggregationPipelineStageProps> = ({
 
   const handleDefinitionChange = (value: string) => {
     if (!locked) {
-      setJsonData(value);
+      setJsonDataAsString(value);
       let parsedContent;
       try {
         parsedContent = JSON.parse(value);
@@ -104,7 +106,7 @@ const AggregationPipelineStage: React.FC<AggregationPipelineStageProps> = ({
         </div>
         <div className="w-full">
           <JsonCodeEditor
-            value={jsonData}
+            value={jsonDataAsString}
             onChange={handleDefinitionChange}
             minHeight="min-h-[256px]"
             maxHeight="max-h-[256px]"

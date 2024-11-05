@@ -56,7 +56,13 @@ const QueryBuilder: React.FC<QueryBuilderProps> = ({
 
   // Handler functions
   const addStage = () => {
-    setStages([...stages, { operator: "$match", definition: "{}" }]);
+    setStages([
+      ...stages,
+      {
+        operator: "$match",
+        definition: JSON.stringify({ key: "value" }, null, 2),
+      },
+    ]);
     setTimeout(() => {
       stagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, 100);

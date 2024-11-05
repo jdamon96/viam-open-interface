@@ -32,12 +32,10 @@ const GroupOfMachinesConfigurationForm: React.FC<
   fragments,
   fragmentsLoading,
 }) => {
-  console.log(card?.groupFragment);
   const [selectionType, setSelectionType] = useState<"specific" | "fragment">(
-    card?.groupFragment !== null || card?.groupFragment !== undefined
-      ? "fragment"
-      : "specific"
+    card?.groupFragment == null ? "specific" : "fragment"
   );
+
   const [selectedMachines, setSelectedMachines] = useState<string[]>(
     selectedGroupMachinesIds
   );
@@ -88,10 +86,13 @@ const GroupOfMachinesConfigurationForm: React.FC<
           <Label htmlFor="specific">Choose specific machines</Label>
         </div>
         <div className="flex items-center space-x-2">
-          <RadioGroupItem value="fragment" id="fragment" />
-          <Label htmlFor="fragment" className="">
+          <RadioGroupItem value="fragment" id="fragment" disabled />
+          <Label htmlFor="fragment" className="text-gray-400">
             Choose machines by configuration fragment
           </Label>
+          <Badge variant="outline" className="ml-2">
+            Coming Soon
+          </Badge>
         </div>
       </RadioGroup>
 

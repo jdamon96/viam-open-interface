@@ -60,9 +60,14 @@ export const applyAggregationPipeline = async (
     const initialStage = stages[0];
     console.log("Initial stage:", initialStage);
 
+    const initialDefinition =
+      typeof initialStage.definition === "string"
+        ? JSON.parse(initialStage.definition)
+        : initialStage.definition;
+
     const aggPipelineFirstStage: Array<{ [key: string]: any }> = [
       {
-        [initialStage.operator]: initialStage.definition,
+        [initialStage.operator]: initialDefinition,
       },
     ];
     if (limitResults) {
@@ -87,8 +92,13 @@ export const applyAggregationPipeline = async (
       const stage = stages[i];
       console.log(`Applying stage ${i}:`, stage);
 
+      const stageDefinition =
+        typeof stage.definition === "string"
+          ? JSON.parse(stage.definition)
+          : stage.definition;
+
       const pipeline = [
-        { [stage.operator]: stage.definition },
+        { [stage.operator]: stageDefinition },
         { $limit: 3 }, // Add $limit implicitly
       ];
       console.log(`Pipeline for stage ${i}:`, pipeline);

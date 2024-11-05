@@ -346,6 +346,17 @@ const DataVisualizationCard: React.FC<{
                 </p>
                 <p className="text-sm text-gray-500">
                   This is where the visualization content will be displayed.
+                  <br />
+                  <br />
+                  <span
+                    className="text-blue-500 underline cursor-pointer"
+                    onClick={() => {
+                      alert("TODO: open query builder view");
+                    }}
+                  >
+                    Your current configured query
+                  </span>{" "}
+                  results:
                 </p>
                 {JSON.stringify(data, null, 2)}
               </div>
