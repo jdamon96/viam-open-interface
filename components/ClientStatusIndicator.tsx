@@ -33,10 +33,11 @@ const ClientStatusIndicator: FC<ClientStatusIndicatorProps> = (props) => {
   }, []);
 
   const handleResetConfig = () => {
-    // Remove the API key from the Zustand store
-    setConfig(null);
-    setApiKey("");
-    setApiKeyId("");
+    // Clear all app state
+    useAppStore.getState().clearAllState();
+
+    // Force a page reload to ensure all components re-initialize
+    window.location.reload();
   };
 
   useEffect(() => {

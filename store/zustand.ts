@@ -69,6 +69,7 @@ interface AppState {
   cards: DataCard[];
   setCards: (cards: DataCard[]) => void;
   loadStateFromJson: (state: Partial<AppState>) => void;
+  clearAllState: () => void;
 }
 
 interface ViamConfig {
@@ -107,9 +108,23 @@ const useAppStore = create(
       cards: [],
       setCards: (cards) => set({ cards }),
       loadStateFromJson: (state) => set(state),
+      clearAllState: () =>
+        set({
+          availableOrganizations: [],
+          availableLocations: [],
+          currentlySelectedOrganization: null,
+          currentlySelectedLocation: null,
+          locationMachines: [],
+          organizationFragments: [],
+          fragmentToMachinesMap: {},
+          config: null,
+          apiKey: "",
+          apiKeyId: "",
+          cards: [],
+        }),
     }),
     {
-      name: "custom-viam-dashboards-app-storage", // unique name
+      name: "custom-viam-dashboards-app-storage",
     }
   )
 );

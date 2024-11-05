@@ -38,17 +38,6 @@ const ApiConfigForm: React.FC<ApiConfigFormProps> = ({
       <CardContent>
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="apiKey">API Key</Label>
-            <Input
-              id="apiKey"
-              type="password"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              placeholder="Enter your API Key"
-              required
-            />
-          </div>
-          <div className="space-y-2">
             <Label htmlFor="apiKeyId">API Key ID</Label>
             <Input
               id="apiKeyId"
@@ -56,6 +45,17 @@ const ApiConfigForm: React.FC<ApiConfigFormProps> = ({
               value={apiKeyId}
               onChange={(e) => setApiKeyId(e.target.value)}
               placeholder="Enter your API Key ID"
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="apiKey">API Key</Label>
+            <Input
+              id="apiKey"
+              type="password"
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              placeholder="Enter your API Key"
               required
             />
           </div>
